@@ -46,4 +46,8 @@ public class UserOperationService {
             userDao.findOne(username).disconnect();
         } catch (NameNotFoundException ignored) {}
     }
+
+    public boolean authenticate(String jwt, String origin) {
+        return userTokenProvider.validateToken(jwt, origin);
+    }
 }
