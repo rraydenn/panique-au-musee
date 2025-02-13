@@ -69,7 +69,7 @@ public class UsersOperationsController {
      * Réalise la déconnexion.
      */
     @PostMapping("/logout")
-    public ResponseEntity<Void> login(@RequestAttribute("username") String username) {
+    public ResponseEntity<Void> logout(@RequestAttribute("username") String username) {
         userOperationService.logout(username);
         return ResponseEntity.noContent().build();
     }

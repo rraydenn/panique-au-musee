@@ -1,9 +1,11 @@
 package fr.univlyon1.m1if.m1if13.users.util;
 
+import fr.univlyon1.m1if.m1if13.users.dao.UserDao;
 import fr.univlyon1.m1if.m1if13.users.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,8 @@ public class UserTokenProvider {
     public static final String SPECIES_CLAIM_NAME = "species";
     private static final String ORIGIN_CLAIM_NAME = "origin";
     private final SecretKey key = Jwts.SIG.HS512.key().build();
+    @Autowired
+    private UserDao userDao;
 
     @Value("${jwt.expirationMs}")
     private int jwtExpirationMs;
@@ -71,11 +75,26 @@ public class UserTokenProvider {
      */
     public boolean validateToken(String token, String origin) {
         try {
-            Jwts.parser()
+            Claims claims = (Claims) Jwts.parser()
                     .verifyWith(key)
                     .build()
-                    .parse(token);
-            return extractClaim(token, ORIGIN_CLAIM_NAME, String.class).equals(origin);
+                    .parse(token)
+                    .getPayload();
+
+            String username = claims.getSubject(); // extraction de l'identifiant
+
+            User extractedUser = null;
+            try {
+                extractedUser = userDao.findOne(username);
+            } catch (Exception ex) {
+                System.out.println("Erreur lors de la recherche de l'utilisateur : " + ex.getMessage());
+            }
+
+            if (extractedUser != null && extractedUser.isConnected()) {
+                return claims.get(ORIGIN_CLAIM_NAME, String.class).equals(origin);
+            } else {
+                return false;
+            }
         } catch (Exception e) {
             return false;
         }
