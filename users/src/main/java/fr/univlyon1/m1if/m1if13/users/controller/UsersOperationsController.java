@@ -4,7 +4,6 @@ import fr.univlyon1.m1if.m1if13.users.dto.LoginRequestDto;
 import fr.univlyon1.m1if.m1if13.users.service.UserOperationService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.naming.AuthenticationException;
 import javax.naming.NameNotFoundException;
@@ -37,7 +35,8 @@ public class UsersOperationsController {
      */
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Void> login(
-            @RequestParam String login, @RequestHeader("Origin") String origin, @RequestParam String password, HttpServletResponse response) {
+            @RequestParam String login, @RequestHeader("Origin") String origin, @RequestParam String password, HttpServletResponse response)
+            throws AuthenticationException, NameNotFoundException {
         return login(new LoginRequestDto(login, password), origin, response);
     }
 
@@ -48,21 +47,10 @@ public class UsersOperationsController {
      * @return Une ResponseEntity avec le JWT dans le header "Authorization" si le login s'est bien passé, et le code de statut approprié (204, 401 ou 404).
      */
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> login(@RequestBody LoginRequestDto loginDto, @RequestHeader("Origin") String origin, HttpServletResponse response) {
-        try {
-            userOperationService.login(loginDto, origin, response);
-            return ResponseEntity.noContent().build();
-        } catch (AuthenticationException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Erreur de correspondance des noms pour l'utilisateur " + loginDto.login() + "."
-            );
-        } catch (NameNotFoundException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Utilisateur " + loginDto.login() + " inconnu."
-            );
-        }
+    public ResponseEntity<Void> login(@RequestBody LoginRequestDto loginDto, @RequestHeader("Origin") String origin, HttpServletResponse response)
+            throws AuthenticationException, NameNotFoundException {
+        userOperationService.login(loginDto, origin, response);
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -81,12 +69,14 @@ public class UsersOperationsController {
      * @return Une réponse vide avec un code de statut approprié (204, 400, 401).
      */
     @GetMapping(value = "/authenticate", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> authenticate(@RequestParam("jwt") String jwt, @RequestParam("origin") String origin) {
+    public ResponseEntity<Void> authenticate(@RequestParam("jwt") String jwt, @RequestParam("origin") String origin)
+            throws AuthenticationException {
         if (origin.isEmpty() || jwt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } else if (userOperationService.authenticate(jwt, origin)) {
-            return ResponseEntity.noContent().build();
+            throw new IllegalArgumentException("Le token JWT et l'origine sont obligatoires.");
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (!userOperationService.authenticate(jwt, origin)) {
+            throw new AuthenticationException("Échec de l'authentification.");
+        }
+        return ResponseEntity.noContent().build();
     }
 }
