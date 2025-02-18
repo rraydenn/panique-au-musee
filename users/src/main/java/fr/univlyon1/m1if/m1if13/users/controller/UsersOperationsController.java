@@ -7,12 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
 import javax.naming.NameNotFoundException;
@@ -33,6 +28,7 @@ public class UsersOperationsController {
      * @param password Le password à vérifier.
      * @return Une ResponseEntity avec le JWT dans le header "Authorization" si le login s'est bien passé, et le code de statut approprié (204, 401 ou 404).
      */
+    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"}, exposedHeaders = {"Authorization"})
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Void> login(
             @RequestParam String login, @RequestHeader("Origin") String origin, @RequestParam String password, HttpServletResponse response)
@@ -46,6 +42,7 @@ public class UsersOperationsController {
      * L'utilisateur doit avoir été créé préalablement et son login doit être présent dans le DAO.
      * @return Une ResponseEntity avec le JWT dans le header "Authorization" si le login s'est bien passé, et le code de statut approprié (204, 401 ou 404).
      */
+    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"}, exposedHeaders = {"Authorization"})
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> login(@RequestBody LoginRequestDto loginDto, @RequestHeader("Origin") String origin, HttpServletResponse response)
             throws AuthenticationException, NameNotFoundException {
@@ -56,6 +53,7 @@ public class UsersOperationsController {
     /**
      * Réalise la déconnexion.
      */
+    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"})
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestAttribute("username") String username) {
         userOperationService.logout(username);
@@ -68,6 +66,7 @@ public class UsersOperationsController {
      * @param origin L'origine de la requête (pour la comparer avec celle du client, stockée dans le token JWT)
      * @return Une réponse vide avec un code de statut approprié (204, 400, 401).
      */
+    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"})
     @GetMapping(value = "/authenticate", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> authenticate(@RequestParam("jwt") String jwt, @RequestParam("origin") String origin)
             throws AuthenticationException {
