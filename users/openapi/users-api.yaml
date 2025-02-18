@@ -1,0 +1,233 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+paths:
+  /users/{userId}:
+    get:
+      tags:
+      - user-resource-controller
+      summary: Obtenir un utilisateur par sont ID
+      description: Récupère un utilisateur spécifique en fonction de son identifiant
+        et affiche ces informations.
+      operationId: getUser
+      parameters:
+      - name: userId
+        in: path
+        description: Identifiant de l'utilisateur
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Utilisateur trouvé
+          content:
+            application/json: {}
+        "404":
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseDto"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/UserResponseDto"
+    put:
+      tags:
+      - user-resource-controller
+      summary: Mise à jour d'un utilisateur
+      description: Met à jour les informations d'un utilisateur existant.
+      operationId: updateUser
+      parameters:
+      - name: userId
+        in: path
+        description: Identifiant de l'utilisateur
+        required: true
+        schema:
+          type: string
+      - name: Origin
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "201":
+          description: Utilisateur mis à jour avec succès
+        "204":
+          description: Aucune modification nécessaire
+    delete:
+      tags:
+      - user-resource-controller
+      summary: Supprimer un utilisateur
+      description: Supprime un utilisateur en fonction de son identifiant.
+      operationId: deleteUser
+      parameters:
+      - name: userId
+        in: path
+        description: Identifiant de l'utilisateur
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Utilisateur supprimé avec succès
+  /users:
+    get:
+      tags:
+      - user-resource-controller
+      summary: Obtenir tous les utilisateurs
+      description: Récupère la liste de tous les utilisateurs.
+      operationId: getAllUsers
+      responses:
+        "200":
+          description: Liste d'utilisateurs récupérée avec succès
+          content:
+            application/json: {}
+        "500":
+          description: Erreur interne du serveur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsersResponseDto"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/UsersResponseDto"
+    post:
+      tags:
+      - user-resource-controller
+      summary: Créer un utilisateur
+      description: Crée un nouvel utilisateur
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "201":
+          description: Utilisateur créé avec succès
+        "409":
+          description: un utilisateur avec ce login existe déjà
+  /logout:
+    post:
+      tags:
+      - users-operations-controller
+      summary: Déconnexion de l'utilisateur
+      description: Met fin à la session de l'utilisateur en invalidant son token.
+      operationId: logout
+      responses:
+        "204":
+          description: Déconnexion réussie
+  /login:
+    post:
+      tags:
+      - users-operations-controller
+      summary: Connection d'un utilisateur
+      description: Permet à un utilisateur de se connecter et de recevoir un JWT.
+      operationId: login
+      parameters:
+      - name: Origin
+        in: header
+        description: Origine de la requête
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequestDto"
+        required: true
+      responses:
+        "204":
+          description: Connexion réussie
+        "401":
+          description: Échec d'authentification
+        "404":
+          description: Utilisateur non trouvé
+  /authenticate:
+    get:
+      tags:
+      - users-operations-controller
+      summary: Vérification de l'authentification
+      description: Vérifie si un utilisateur est toujours authentifié avec son token
+        JWT.
+      operationId: authenticate
+      parameters:
+      - name: jwt
+        in: query
+        description: Token JWT de l'utilisateur
+        required: true
+        schema:
+          type: string
+      - name: origin
+        in: query
+        description: Origine de la requête
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Utilisateur authentifié
+        "400":
+          description: Paramètres manquants
+        "401":
+          description: Token invalide ou utilisateur non authentifié
+components:
+  schemas:
+    User:
+      type: object
+      description: Détails de l'utilisateur à créer
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+        species:
+          type: string
+          enum:
+          - VOLEUR
+          - POLICIER
+          - ADMIN
+        connected:
+          type: boolean
+        image:
+          type: string
+    LoginRequestDto:
+      type: object
+      description: Identifiants de l'utilisateur
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+    UsersResponseDto:
+      type: object
+    UserResponseDto:
+      type: object
+      properties:
+        login:
+          type: string
+        species:
+          type: string
+          enum:
+          - VOLEUR
+          - POLICIER
+          - ADMIN

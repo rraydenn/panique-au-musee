@@ -38,7 +38,8 @@ public class AuthenticationFilter extends HttpFilter {
                 (url.startsWith("/users/") && request.getMethod().equals("DELETE")) ||
                 (url.equals("/login") && request.getMethod().equals("POST")) ||
                 (url.equals("/authenticate") && request.getMethod().equals("GET")) ||
-                userTokenProvider.isUserConnected(request)
+                userTokenProvider.isUserConnected(request) ||
+                url.startsWith("/swagger-ui/") || url.startsWith("/v3/")
         ) {
             chain.doFilter(request, response);
             return;
