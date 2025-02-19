@@ -13,9 +13,9 @@ Merci de modifier ce readme en indiquant :
   - jusqu'où vous avez été
   - vos choix de conception s'ils ne sont pas évidents
 
-Numéro de binôme : B16
-DOMINGUES Kévin
-POUPON Ugo
+Numéro de binôme : B16  
+DOMINGUES Kévin  
+POUPON Ugo  
 
 ## TP1
 
