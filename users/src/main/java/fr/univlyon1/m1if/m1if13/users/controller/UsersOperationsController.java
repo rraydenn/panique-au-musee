@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -41,9 +42,9 @@ public class UsersOperationsController {
     @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"}, exposedHeaders = {"Authorization"})
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Void> login(
-            @RequestParam String login, @RequestHeader("Origin") String origin, @RequestParam String password, HttpServletResponse response)
+            @RequestParam String login, @RequestHeader("Origin") String origin, @RequestParam String password, HttpServletRequest request)
             throws AuthenticationException, NameNotFoundException {
-        return login(new LoginRequestDto(login, password), origin, response);
+        return login(new LoginRequestDto(login, password), origin, request);
     }
 
     /**
@@ -63,9 +64,9 @@ public class UsersOperationsController {
     public ResponseEntity<Void> login(
             @Parameter(description = "Identifiants de l'utilisateur") @RequestBody LoginRequestDto loginDto,
             @Parameter(description = "Origine de la requête") @RequestHeader("Origin") String origin,
-            HttpServletResponse response)
+            HttpServletRequest request)
             throws AuthenticationException, NameNotFoundException {
-        userOperationService.login(loginDto, origin, response);
+        userOperationService.login(loginDto, origin, request);
         return ResponseEntity.noContent().build();
     }
 

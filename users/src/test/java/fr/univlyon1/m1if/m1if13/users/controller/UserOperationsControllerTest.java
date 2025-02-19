@@ -4,7 +4,6 @@ import fr.univlyon1.m1if.m1if13.users.dto.LoginRequestDto;
 import fr.univlyon1.m1if.m1if13.users.service.UserOperationService;
 import fr.univlyon1.m1if.m1if13.users.util.UserTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -47,7 +46,7 @@ class UsersOperationsControllerTest {
         String loginJson = "{\"login\":\"testUser\",\"password\":\"password\"}";
 
         doNothing().when(userOperationService)
-                .login(any(LoginRequestDto.class), anyString(), any(HttpServletResponse.class));
+                .login(any(LoginRequestDto.class), anyString(), any(HttpServletRequest.class));
 
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -65,7 +64,7 @@ class UsersOperationsControllerTest {
 
         doThrow(new AuthenticationException("Invalid credentials"))
                 .when(userOperationService)
-                .login(any(LoginRequestDto.class), anyString(), any(HttpServletResponse.class));
+                .login(any(LoginRequestDto.class), anyString(), any(HttpServletRequest.class));
 
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -83,7 +82,7 @@ class UsersOperationsControllerTest {
 
         doThrow(new NameNotFoundException("User not found"))
                 .when(userOperationService)
-                .login(any(LoginRequestDto.class), anyString(), any(HttpServletResponse.class));
+                .login(any(LoginRequestDto.class), anyString(), any(HttpServletRequest.class));
 
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)

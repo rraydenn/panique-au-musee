@@ -6,6 +6,7 @@ import fr.univlyon1.m1if.m1if13.users.dto.LinkDto;
 import fr.univlyon1.m1if.m1if13.users.model.User;
 import fr.univlyon1.m1if.m1if13.users.dao.UserDao;
 import fr.univlyon1.m1if.m1if13.users.util.UserTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,6 @@ public class UserResourceService {
 
     @Autowired
     private UserDao userDao;
-    @Autowired
-    private UserTokenProvider userTokenProvider;
 
     public Collection<User> getAllUsers() {
         return userDao.findAll();
@@ -49,10 +48,10 @@ public class UserResourceService {
         return UserResponseDto.of(userDao.findOne(login));
     }
 
-    public void updateUser(String login, User user, String origin, HttpServletResponse response) {
+    public void updateUser(String login, User user, String origin, HttpServletRequest request) {
         userDao.update(login, user);
-        String token = userTokenProvider.generateToken(user, origin);
-        response.addHeader("Authorization", "Bearer " + token);
+        request.setAttribute("generateToken", true);
+        request.setAttribute("userLogin", user.getLogin());
     }
 
     public void deleteUser(String login) throws NameNotFoundException {

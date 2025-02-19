@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -137,12 +138,12 @@ public class UserResourceController {
             @Parameter(description = "Identifiant de l'utilisateur") @PathVariable String userId,
             @Parameter(description = "Détails de l'utilisateur à mettre à jour") @RequestBody User user,
             @RequestHeader("Origin") String origin,
-            HttpServletResponse response) {
+            HttpServletRequest request) {
         try {
             userResourceService.createUser(user);
             return ResponseEntity.created(URI.create("users/" + userId)).build();
         } catch (NameAlreadyBoundException e) {
-            userResourceService.updateUser(userId, user, origin, response);
+            userResourceService.updateUser(userId, user, origin, request);
             return ResponseEntity.noContent().build();
         }
     }

@@ -4,6 +4,7 @@ import fr.univlyon1.m1if.m1if13.users.dto.LoginRequestDto;
 import fr.univlyon1.m1if.m1if13.users.model.User;
 import fr.univlyon1.m1if.m1if13.users.dao.UserDao;
 import fr.univlyon1.m1if.m1if13.users.util.UserTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,16 +26,16 @@ public class UserOperationService {
     /**
      * Méthode réalisant le login : valide le contenu de la requête et place les informations sur l'utilisateur dans une Map en attribut de requête.
      * @param dto L'utilisateur trouvé dans le DAO
-     * @param response La réponse (nécessaire pour rajouter le header "Authorization" avec le token JWT).
+     * @param request La requête (nécessaire pour rajouter le header "Authorization" avec le token JWT via l'interceptor).
      * @throws NameNotFoundException Si le login de l'utilisateur ne correspond pas à un utilisateur existant
      * @throws MatchException Si la vérification des credentials de l'utilisateur a échoué.
      */
-    public void login(LoginRequestDto dto, String origin, HttpServletResponse response) throws NameNotFoundException, AuthenticationException {
+    public void login(LoginRequestDto dto, String origin, HttpServletRequest request) throws NameNotFoundException, AuthenticationException {
         User user = userDao.findOne(dto.login());
         user.authenticate(dto.password());
 
-        String jwt = userTokenProvider.generateToken(user, origin);
-        response.setHeader("Authorization", "Bearer " + jwt);
+        request.setAttribute("generateToken", true);
+        request.setAttribute("userLogin", user.getLogin());
     }
 
     /**
