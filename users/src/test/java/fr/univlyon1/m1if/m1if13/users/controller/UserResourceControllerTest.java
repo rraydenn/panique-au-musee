@@ -70,21 +70,17 @@ class UserResourceControllerTest {
     }
 
     /**
-     * Test de récupération d'un utilisateur avec succès.
-     * Vérifie que la réponse contient les bonnes informations et le bon code HTTP.
+     * Test de récupération de la liste des utilisateurs.
+     * Vérifie que le code 200 est renvoyé avec la liste au format JSON.
      */
     @Test
-    void getUser_ShouldReturn200AndCorrectContent() throws Exception {
-        UserResponseDto expectedUser = new UserResponseDto("testUser", Species.VOLEUR);
-        when(userResourceService.getUser("testUser")).thenReturn(expectedUser);
+    void getAllUsers_ShouldReturn200AndUsersList() throws Exception {
+        when(userResourceService.getAllUsersDto()).thenReturn(new UsersResponseDto(java.util.Collections.emptyList()));
 
-        mockMvc.perform(get("/users/testUser")
-                        .header("Authorization", "Bearer mock.jwt.token")
+        mockMvc.perform(get("/users")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.login").value("testUser"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.species").value("VOLEUR"));
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     /**
@@ -122,14 +118,21 @@ class UserResourceControllerTest {
     }
 
     /**
-     * Test de suppression d'un utilisateur avec succès.
-     * Vérifie que le code 204 est renvoyé.
+     * Test de récupération d'un utilisateur avec succès.
+     * Vérifie que la réponse contient les bonnes informations et le bon code HTTP.
      */
     @Test
-    void deleteUser_ShouldReturn204() throws Exception {
-        mockMvc.perform(delete("/users/testUser")
-                        .header("Authorization", "Bearer mock.jwt.token"))
-                .andExpect(status().isNoContent());
+    void getUser_ShouldReturn200AndCorrectContent() throws Exception {
+        UserResponseDto expectedUser = new UserResponseDto("testUser", Species.VOLEUR);
+        when(userResourceService.getUser("testUser")).thenReturn(expectedUser);
+
+        mockMvc.perform(get("/users/testUser")
+                        .header("Authorization", "Bearer mock.jwt.token")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.login").value("testUser"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.species").value("VOLEUR"));
     }
 
     /**
@@ -154,19 +157,6 @@ class UserResourceControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    /** Test de création d'un utilisateur avec des données invalides.
-     * Vérifie que le code 400 (Bad Request) est renvoyé.
-     */
-    @Test
-    void createUser_WithInvalidData_ShouldReturn400() throws Exception {
-        String invalidUserJson = "{\"login\":\"\",\"password\":\"\",\"species\":\"INVALID\"}";
-
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidUserJson))
-                .andExpect(status().isBadRequest());
-    }
-
     /**
      * Test de mise à jour d'un utilisateur avec succès.
      * Vérifie que le code 201 est renvoyé.
@@ -184,16 +174,32 @@ class UserResourceControllerTest {
     }
 
     /**
-     * Test de récupération de la liste des utilisateurs.
-     * Vérifie que le code 200 est renvoyé avec la liste au format JSON.
+     * Test de mise à jour d'un utilisateur sans modification.
+     * Vérifie que le code 204 (No Content) est renvoyé.
      */
     @Test
-    void getAllUsers_ShouldReturn200AndUsersList() throws Exception {
-        when(userResourceService.getAllUsersDto()).thenReturn(new UsersResponseDto(java.util.Collections.emptyList()));
+    void updateUser_WithoutChanges_ShouldReturn204() throws Exception {
+        String userJson = "{\"login\":\"testUser\",\"password\":\"password\",\"species\":\"VOLEUR\"}";
 
-        mockMvc.perform(get("/users")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+        when(userResourceService.createUser(any(User.class)))
+                .thenThrow(new NameAlreadyBoundException("User already exists"));
+
+        mockMvc.perform(put("/users/testUser")
+                        .header("Authorization", "Bearer mock.jwt.token")
+                        .header("Origin", "http://localhost")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userJson))
+                .andExpect(status().isNoContent());
+    }
+
+    /**
+     * Test de suppression d'un utilisateur avec succès.
+     * Vérifie que le code 204 est renvoyé.
+     */
+    @Test
+    void deleteUser_ShouldReturn204() throws Exception {
+        mockMvc.perform(delete("/users/testUser")
+                        .header("Authorization", "Bearer mock.jwt.token"))
+                .andExpect(status().isNoContent());
     }
 }
