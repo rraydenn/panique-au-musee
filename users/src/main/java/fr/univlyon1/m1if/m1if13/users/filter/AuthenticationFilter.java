@@ -29,7 +29,7 @@ public class AuthenticationFilter extends HttpFilter {
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         // Permet de retrouver la fin de l'URL (après l'URL du contexte) -> indépendant de l'URL de déploiement
-        String url = request.getRequestURI().replace(request.getContextPath(), "");
+        String url = request.getRequestURI().replaceFirst(request.getContextPath(), "");
 
         // Laisse passer les URLs ne nécessitant pas d'authentification et les requêtes par des utilisateurs authentifiés
         if(

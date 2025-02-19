@@ -74,7 +74,7 @@ class UserResourceControllerTest {
      * Vérifie que le code 200 est renvoyé avec la liste au format JSON.
      */
     @Test
-    void getAllUsers_ShouldReturn200AndUsersList() throws Exception {
+    void getAllUsersShouldReturn200AndUsersList() throws Exception {
         when(userResourceService.getAllUsersDto()).thenReturn(new UsersResponseDto(java.util.Collections.emptyList()));
 
         mockMvc.perform(get("/users")
@@ -88,7 +88,7 @@ class UserResourceControllerTest {
      * Vérifie que le code de statut 201 est renvoyé avec l'URI de la ressource créée.
      */
     @Test
-    void createUser_ShouldReturn201() throws Exception {
+    void createUserShouldReturn201() throws Exception {
         String userJson = "{\"login\":\"testUser\",\"password\":\"password\",\"species\":\"VOLEUR\"}";
 
         when(userResourceService.createUser(any(User.class)))
@@ -106,7 +106,7 @@ class UserResourceControllerTest {
      * Vérifie que le code 409 (Conflict) est renvoyé.
      */
     @Test
-    void createUser_WithExistingLogin_ShouldReturn409() throws Exception {
+    void createUserWithExistingLoginShouldReturn409() throws Exception {
         String userJson = "{\"login\":\"testUser\",\"password\":\"password\",\"species\":\"VOLEUR\"}";
         when(userResourceService.createUser(any(User.class)))
                 .thenThrow(new NameAlreadyBoundException("User already exists"));
@@ -122,7 +122,7 @@ class UserResourceControllerTest {
      * Vérifie que la réponse contient les bonnes informations et le bon code HTTP.
      */
     @Test
-    void getUser_ShouldReturn200AndCorrectContent() throws Exception {
+    void getUserShouldReturn200AndCorrectContent() throws Exception {
         UserResponseDto expectedUser = new UserResponseDto("testUser", Species.VOLEUR);
         when(userResourceService.getUser("testUser")).thenReturn(expectedUser);
 
@@ -140,7 +140,7 @@ class UserResourceControllerTest {
      * Vérifie que le code 404 (Not Found) est renvoyé.
      */
     @Test
-    void getUser_WhenUserDoesNotExist_ShouldReturn404() throws Exception {
+    void getUserWhenUserDoesNotExistShouldReturn404() throws Exception {
         when(userResourceService.getUser("nonexistent"))
                 .thenThrow(new NameNotFoundException("User not found"));
 
@@ -162,7 +162,7 @@ class UserResourceControllerTest {
      * Vérifie que le code 201 est renvoyé.
      */
     @Test
-    void updateUser_ShouldReturn201() throws Exception {
+    void updateUserShouldReturn201() throws Exception {
         String userJson = "{\"login\":\"testUser\",\"password\":\"newpass\",\"species\":\"POLICIER\"}";
 
         mockMvc.perform(put("/users/testUser")
@@ -178,7 +178,7 @@ class UserResourceControllerTest {
      * Vérifie que le code 204 (No Content) est renvoyé.
      */
     @Test
-    void updateUser_WithoutChanges_ShouldReturn204() throws Exception {
+    void updateUserWithoutChangesShouldReturn204() throws Exception {
         String userJson = "{\"login\":\"testUser\",\"password\":\"password\",\"species\":\"VOLEUR\"}";
 
         when(userResourceService.createUser(any(User.class)))
@@ -197,7 +197,7 @@ class UserResourceControllerTest {
      * Vérifie que le code 204 est renvoyé.
      */
     @Test
-    void deleteUser_ShouldReturn204() throws Exception {
+    void deleteUserShouldReturn204() throws Exception {
         mockMvc.perform(delete("/users/testUser")
                         .header("Authorization", "Bearer mock.jwt.token"))
                 .andExpect(status().isNoContent());

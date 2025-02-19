@@ -17,10 +17,13 @@ import javax.naming.NameNotFoundException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Tests unitaires pour le contrôleur UsersOperationsController.
  * Utilise Spring MockMVC pour simuler les requêtes HTTP et vérifier les réponses.
@@ -42,7 +45,7 @@ class UsersOperationsControllerTest {
      * Vérifie que la réponse HTTP est un code 204.
      */
     @Test
-    void login_WithValidCredentials_ShouldReturn204() throws Exception {
+    void loginWithValidCredentialsShouldReturn204() throws Exception {
         String loginJson = "{\"login\":\"testUser\",\"password\":\"password\"}";
 
         doNothing().when(userOperationService)
@@ -59,7 +62,7 @@ class UsersOperationsControllerTest {
      * Vérifie que la réponse HTTP est un code 401.
      */
     @Test
-    void login_WithInvalidCredentials_ShouldReturn401() throws Exception {
+    void loginWithInvalidCredentialsShouldReturn401() throws Exception {
         String loginJson = "{\"login\":\"testUser\",\"password\":\"wrongpassword\"}";
 
         doThrow(new AuthenticationException("Invalid credentials"))
@@ -77,7 +80,7 @@ class UsersOperationsControllerTest {
      * Vérifie que la réponse HTTP est un code 404.
      */
     @Test
-    void login_WithNonExistentUser_ShouldReturn404() throws Exception {
+    void loginWithNonExistentUserShouldReturn404() throws Exception {
         String loginJson = "{\"login\":\"nonExistentUser\",\"password\":\"password\"}";
 
         doThrow(new NameNotFoundException("User not found"))
@@ -95,7 +98,7 @@ class UsersOperationsControllerTest {
      * Vérifie que la réponse HTTP est un code 204.
      */
     @Test
-    void logout_ShouldReturn204() throws Exception {
+    void logoutShouldReturn204() throws Exception {
         when(userTokenProvider.isUserConnected(any(HttpServletRequest.class))).thenReturn(true);
         doAnswer(invocation -> {
             HttpServletRequest request = invocation.getArgument(0);
@@ -114,7 +117,7 @@ class UsersOperationsControllerTest {
      * Vérifie que la réponse HTTP est un code 204.
      */
     @Test
-    void authenticate_WithValidToken_ShouldReturn204() throws Exception {
+    void authenticateWithValidTokenShouldReturn204() throws Exception {
         when(userOperationService.authenticate(anyString(), anyString())).thenReturn(true);
 
         mockMvc.perform(get("/authenticate")
@@ -127,7 +130,7 @@ class UsersOperationsControllerTest {
      * Vérifie que la réponse HTTP est un code 400.
      */
     @Test
-    void authenticate_WithMissingParameters_ShouldReturn400() throws Exception {
+    void authenticateWithMissingParametersShouldReturn400() throws Exception {
         mockMvc.perform(get("/authenticate")
                         .param("jwt", "")
                         .param("origin", ""))
@@ -138,7 +141,7 @@ class UsersOperationsControllerTest {
      * Vérifie que la réponse HTTP est un code 401.
      */
     @Test
-    void authenticate_WithInvalidToken_ShouldReturn401() throws Exception {
+    void authenticateWithInvalidTokenShouldReturn401() throws Exception {
         when(userOperationService.authenticate(anyString(), anyString())).thenReturn(false);
 
         mockMvc.perform(get("/authenticate")
