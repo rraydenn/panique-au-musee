@@ -5,9 +5,7 @@ import fr.univlyon1.m1if.m1if13.users.dto.UsersResponseDto;
 import fr.univlyon1.m1if.m1if13.users.dto.LinkDto;
 import fr.univlyon1.m1if.m1if13.users.model.User;
 import fr.univlyon1.m1if.m1if13.users.dao.UserDao;
-import fr.univlyon1.m1if.m1if13.users.util.UserTokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

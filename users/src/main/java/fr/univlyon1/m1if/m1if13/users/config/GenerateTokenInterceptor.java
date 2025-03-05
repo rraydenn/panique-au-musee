@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * Interceptor pour générer un token JWT.
+ * */
 @Component
 public class GenerateTokenInterceptor implements HandlerInterceptor {
     @Autowired
