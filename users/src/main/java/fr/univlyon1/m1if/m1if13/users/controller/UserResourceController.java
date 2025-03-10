@@ -1,4 +1,4 @@
-package fr.univlyon1.m1if.m1if13.users.controller;
+/* package fr.univlyon1.m1if.m1if13.users.controller;
 
 import fr.univlyon1.m1if.m1if13.users.dto.UserResponseDto;
 import fr.univlyon1.m1if.m1if13.users.dto.UsersResponseDto;
@@ -30,7 +30,7 @@ import java.net.URI;
 
 /**
  * Aiguillage des requêtes liées aux ressources des utilisateurs.
- */
+ *//*
 @RestController
 @RequestMapping("/users")
 public class UserResourceController {
@@ -167,3 +167,4 @@ public class UserResourceController {
         return ResponseEntity.noContent().build();
     }
 }
+*/
