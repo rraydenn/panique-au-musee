@@ -38,7 +38,7 @@ public class UsersOperationsController {
      * @param password Le password à vérifier.
      * @return Une ResponseEntity avec le JWT dans le header "Authorization" si le login s'est bien passé, et le code de statut approprié (204, 401 ou 404).
      */
-    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"}, exposedHeaders = {"Authorization"})
+    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.94", "https://192.168.75.94"}, exposedHeaders = {"Authorization"})
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Void> login(
             @RequestParam String login, @RequestHeader("Origin") String origin, @RequestParam String password, HttpServletRequest request)
@@ -58,7 +58,7 @@ public class UsersOperationsController {
             @ApiResponse(responseCode = "401", description = "Échec d'authentification"),
             @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
     })
-    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"}, exposedHeaders = {"Authorization"})
+    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.94", "https://192.168.75.94"}, exposedHeaders = {"Authorization"})
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> login(
             @Parameter(description = "Identifiants de l'utilisateur") @RequestBody LoginRequestDto loginDto,
@@ -76,7 +76,7 @@ public class UsersOperationsController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Déconnexion réussie")
     })
-    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"})
+    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.94", "https://192.168.75.94"})
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @Parameter(description = "Nom d'utilisateur") @RequestAttribute("username") String username) {
@@ -96,7 +96,7 @@ public class UsersOperationsController {
             @ApiResponse(responseCode = "400", description = "Paramètres manquants"),
             @ApiResponse(responseCode = "401", description = "Token invalide ou utilisateur non authentifié")
     })
-    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.XXX", "https://192.168.75.XXX"})
+    @CrossOrigin(origins = {"http://localhost", "http://192.168.75.94", "https://192.168.75.94"})
     @GetMapping(value = "/authenticate", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> authenticate(
             @Parameter(description = "Token JWT de l'utilisateur") @RequestParam("jwt") String jwt,
