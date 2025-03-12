@@ -24,8 +24,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://editor-next.swagger.io", "http://localhost", "http://127.0.0.1", "http://localhost:8080",
-                    "https://192.168.75.94", "http://192.168.75.94:8080")
+                .allowedOrigins("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("Authorization", "Content-Type")
                 .exposedHeaders("Authorization", "Content-Type", "Location", "Link")
