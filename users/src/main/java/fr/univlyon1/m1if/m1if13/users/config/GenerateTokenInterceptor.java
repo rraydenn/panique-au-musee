@@ -32,10 +32,8 @@ public class GenerateTokenInterceptor implements HandlerInterceptor {
 
             try {
                 User user = userDao.findOne(userLogin);
-                if(user.isConnected()) {
-                    String token = userTokenProvider.generateToken(user, origin);
-                    response.setHeader("Authorization", "Bearer " + token);
-                }
+                String token = userTokenProvider.generateToken(user, origin);
+                response.setHeader("Authorization", "Bearer " + token);
             } catch (Exception ignored) { }
         }
     }
