@@ -20,7 +20,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(generateTokenInterceptor);
     }
-
+    /*
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -31,5 +31,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .exposedHeaders("Authorization", "Content-Type", "Location", "Link")
                 .allowCredentials(true).maxAge(3600);
     }
+     */
 
 }
