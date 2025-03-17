@@ -10,7 +10,7 @@ cache:
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
-deploy:
+deploy_tomcat:
   only:
     - main
   before_script:
@@ -22,3 +22,15 @@ deploy:
      - cd users
      - mvn clean package
      - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY target/users.war  gitlabci@192.168.75.94:/opt/tomcat/webapps/users.war
+
+deploy_express:
+  only:
+    - main
+  before_script:
+    - chmod +x setup-mvn-proxy.sh
+    - ./setup-mvn-proxy.sh
+    - chmod 400 $CI_SSH_KEY
+    - apk add openssh-client
+  script:
+     - cd server_express
+     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY server.js  gitlabci@192.168.75.94:/opt/express/server.js
