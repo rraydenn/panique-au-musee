@@ -18,7 +18,6 @@ app.get("/", (req, res) => {
     try {
         // Décodage du token
         const decodedToken = jwtDecode(token);
-        console.log(decodedToken);
 
         // Vérification de l'origine
         if (decodedToken.sub == origin || decodedToken.origin.startsWith("http://localhost")) {
