@@ -17,10 +17,9 @@ variables:
   - apk add openssh-client
 
 deploy_tomcat:
-  only:
-    - main
   rules:
-    - changes:
+    - if: '$CI_COMMIT_BRANCH == "main"'  # S'exécute uniquement sur la branche `main`
+      changes:
         - users/**  # Déploiement uniquement si des fichiers dans `users` changent
   before_script:
     - *before_script_common
@@ -30,10 +29,9 @@ deploy_tomcat:
     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY target/users.war gitlabci@192.168.75.94:/opt/tomcat/webapps/users.war
 
 deploy_express:
-  only:
-    - main
   rules:
-    - changes:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
         - server_express/**  # Déploiement uniquement si des fichiers dans `server_express` changent
   before_script:
     - *before_script_common
@@ -42,11 +40,10 @@ deploy_express:
     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY server.js gitlabci@192.168.75.94:/opt/express/server.js
 
 deploy_SPA:
-  only:
-    - main
   rules:
-    - changes:
-        - client_SPA.html  # Déploiement uniquement si des fichiers dans `spa` changent
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - client_SPA.html  # Déploiement uniquement si `client_SPA.html` change
   before_script:
     - *before_script_common
   script:
