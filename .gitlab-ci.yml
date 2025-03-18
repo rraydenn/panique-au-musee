@@ -19,6 +19,9 @@ variables:
 deploy_tomcat:
   only:
     - main
+  rules:
+    - changes:
+        - users/**  # Déploiement uniquement si des fichiers dans `users` changent
   before_script:
     - *before_script_common
   script:
@@ -29,6 +32,9 @@ deploy_tomcat:
 deploy_express:
   only:
     - main
+  rules:
+    - changes:
+        - server_express/**  # Déploiement uniquement si des fichiers dans `server_express` changent
   before_script:
     - *before_script_common
   script:
@@ -38,8 +44,10 @@ deploy_express:
 deploy_SPA:
   only:
     - main
+  rules:
+    - changes:
+        - client_SPA.html  # Déploiement uniquement si des fichiers dans `spa` changent
   before_script:
     - *before_script_common
   script:
     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY client_SPA.html gitlabci@192.168.75.94:/usr/share/nginx/html/index.html
-    

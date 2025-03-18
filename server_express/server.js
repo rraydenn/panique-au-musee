@@ -7,7 +7,7 @@ const PORT = 3376; // Choisissez le port que vous souhaitez
 app.get("/", (req, res) => {
     // Récupération des headers
     const authHeader = req.headers["authorization"];
-    const origin = req.headers["origin"];
+    const origin = req.headers["origin"] || "http://localhost";
 
     if (!authHeader) {
         return res.status(401).json({ error: `Unauthorized: No token provided` });
@@ -19,9 +19,10 @@ app.get("/", (req, res) => {
         // Décodage du token
         const decodedToken = jwtDecode(token);
 
+        const allowedOrigins = ["http://localhost", "https://192.168.75.94"];
         // Vérification de l'origine
-        if (decodedToken.sub == origin || decodedToken.origin.startsWith("http://localhost")) {
-                return res.status(200).send(`Bonjour ${decodedToken.sub || "utilisateur inconnu"}`);
+        if (allowedOrigins.includes(origin) && allowedOrigins.includes(decodedToken.origin)) {
+                return res.status(200).send(`Bonjour ${decodedToken.sub}`);
         } else {
                 return res.status(403).json({ error: "Forbidden: Invalid origin" });
         }
@@ -33,4 +34,3 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
 });
-
