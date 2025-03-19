@@ -19,14 +19,18 @@ POUPON Ugo
 
 ## TP1
 
-En cours (Dernière màj du readme: partie 6)
+Fini (màj: 19/03)
 
 ## TP2
 
-En cours  (Dernière màj du readme: partie 3.1)
+Fini (màj: 19/03)
 
 ### Documentation de l'API
 
 - [Fichier OpenAPI (YAML)](users/openapi/users-api.yaml)  
 - [Collection Postman](users/postman/M1IF13-2025.postman_collection.json)  
 - [Documentation Swagger UI - Pas encore implémenté](http://192.168.75.XXX:8080/swagger-ui)  
+
+## TP3
+
+En cours (màj: 19/03)
