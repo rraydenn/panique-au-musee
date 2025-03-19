@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+		<meta charset="UTF-8">
+        <title>Panique au Musée - Confidentiel</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+        <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+        <link rel="stylesheet" href="css/style.css"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body class="b">
+		<header>
+			<h1>Panique au Musée</h1>
+			<h1 class="elanor">Confidentiel</span></h1>
+		</header>
+
+		<section>
+			<h2>Position</h2>
+			<div class="content">
+				<p><strong>TODO:</strong> faire en sorte que le formulaire se mette à jour automatiquement quand on clique sur la carte ou quand on modifie le niveau de zoom, et inversement.</p>
+				<form onsubmit="return false;" class="pure-form">
+					<fieldset style="display: flow-root;">
+						<label for="lat" class="first">Lattitude </label> <input type="text" id="lat" name="lat" value="45.782">
+						<label for="lon">Longitude</label> <input type="text" id="lon" name="lon" value="4.8656">
+						<label for="zoom">Zoom<span id="zoomValue"></span></label> <input type="range" id="zoom" name="zoom" min="1" max="21" value="15">
+					</fieldset>
+				</form>
+			</div>
+		</section>
+
+		<section>
+			<h2>Carte</h2>
+			<div class="content"><p><strong>TODO:</strong> mettre à jour les positions des différents objets sur la carte.</p></div>
+			<div id="map"></div>
+			<br/>
+		</section>
+
+		<section>
+			<h2>ZRR</h2>
+			<div class="content">
+				<p><strong>TODO:</strong> modifier les scripts pour que les coordonnées des coins de la carte s'affichent dans le formulaire quand on clique sur le bouton "Set" et que le bouton "Send" appelle la bonne fonctionnalité de votre serveur Express.</p>
+				<form id="setCorner1" onsubmit="return false;" class="pure-form">
+					<fieldset>
+						<label for="lat1" class="first">Lattitude </label> <input type="text" id="lat1" name="lat1">&nbsp;&nbsp;
+						<label for="lon1">Longitude</label> <input type="text" id="lon1" name="lon1">
+					</fieldset>
+					<fieldset>
+						<label for="lat2" class="first">Lattitude </label> <input type="text" id="lat2" name="lat2">&nbsp;&nbsp;
+						<label for="lon2">Longitude</label> <input type="text" id="lon2" name="lon2">
+					</fieldset>
+					<fieldset>
+						<label for="sendZrr" class="first">Définir les limites de la ZRR ></label>&nbsp;&nbsp;
+						<button class="pure-button pure-button-active" id="setZrrButton">Set</button>&nbsp;&nbsp;
+						<label for="sendZrr">Envoyer les coordonnées de la ZRR ></label>&nbsp;&nbsp;
+						<button class="pure-button pure-button-active" id="sendZrrButton">Send</button>
+					</fieldset>
+				</form>
+			</div>
+		</section>
+
+		<section>
+			<h2>Paramètres</h2>
+			<div class="content">
+				<p><strong>TODO:</strong> mettre en place le script nécessaire pour mettre à jour le TTL dans l'API du jeu.</p>
+				<form id="setTtl" onsubmit="return false;" class="pure-form">
+					<fieldset>
+						<label for="ttl" class="first">Temps de Traque Limité / Temps de Trafic Libre (TTL) par défaut</label> <input type="number" min="0" max="180" value="60" id="ttl" name="ttl">&nbsp;&nbsp;
+						<button id="setTtlButton" class="pure-button pure-button-active">Set</button>
+					</fieldset>
+				</form>
+			</div>
+		</section>
+
+		<section>
+			<div class="content">
+			<p><strong>Credits:</strong> Fonts by 
+				<span style="font-family: _h1_"><a href="https://fonts.google.com/specimen/Paytone+One">Paytone One</a></span>, 
+				<span style="font-family: _h2_"><a href="https://www.fontsquirrel.com/fonts/forum">Forum</a></span> and 
+				<span style="font-family: _normal_"><a href="https://www.fontsquirrel.com/fonts/roboto-slab">Roboto Slab</a></span>.</p>
+			</div>
+		</section>
+    <script type="module" src="./js/index.js"></script>
+  </body>
+</html>
