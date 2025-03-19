@@ -1,7 +1,9 @@
 package fr.univlyon1.m1if.m1if13.users.config;
 
 import fr.univlyon1.m1if.m1if13.users.handler.UserResourceHandler;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -27,7 +29,9 @@ import static org.springframework.web.servlet.function.RequestPredicates.PUT;
  * Aiguillage des requêtes liées aux ressources des utilisateurs.
  */
 @Configuration
-@Tag(name = "User Resource Controller")
+@OpenAPIDefinition(tags = {
+    @Tag(name = "User Resource Controller")
+})
 public class UserResourceRouter {
 
     @Bean
@@ -37,11 +41,14 @@ public class UserResourceRouter {
     @RouterOperation(
         path = "/users",
         method = {org.springframework.web.bind.annotation.RequestMethod.GET},
+        beanClass = UserResourceHandler.class,
+        beanMethod = "getAllUsers",
         operation = @Operation(
             summary = "Obtenir tous les utilisateurs",
             description = "Récupère la liste de tous les utilisateurs.",
             responses = {
-                @ApiResponse(responseCode = "200", description = "Liste d'utilisateurs récupérée avec succès"),
+                @ApiResponse(responseCode = "200", description = "Liste d'utilisateurs récupérée avec succès",
+                        content = @Content(mediaType = "application/json")),
                 @ApiResponse(responseCode = "500", description = "Erreur interne du serveur")
             }
         )
@@ -51,6 +58,8 @@ public class UserResourceRouter {
     @RouterOperation(
         path = "/users",
         method = {org.springframework.web.bind.annotation.RequestMethod.POST},
+        beanClass = UserResourceHandler.class,
+        beanMethod = "createUser",
         operation = @Operation(
             summary = "Créer un utilisateur",
             description = "Crée un nouvel utilisateur",
@@ -65,11 +74,13 @@ public class UserResourceRouter {
     @RouterOperation(
         path = "/users/{userId}",
         method = {org.springframework.web.bind.annotation.RequestMethod.GET},
+        beanClass = UserResourceHandler.class,
+        beanMethod = "getUser",
         operation = @Operation(
             summary = "Obtenir un utilisateur par son ID",
             description = "Récupère un utilisateur spécifique en fonction de son identifiant et affiche ces informations.",
             responses = {
-                @ApiResponse(responseCode = "200", description = "Utilisateur trouvé"),
+                @ApiResponse(responseCode = "200", description = "Utilisateur trouvé", content = @Content(mediaType = "application/json")),
                 @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
             }
         )
@@ -79,6 +90,8 @@ public class UserResourceRouter {
     @RouterOperation(
         path = "/users/{userId}",
         method = {org.springframework.web.bind.annotation.RequestMethod.PUT},
+        beanClass = UserResourceHandler.class,
+        beanMethod = "updateUser",
         operation = @Operation(
             summary = "Mise à jour d'un utilisateur",
             description = "Met à jour les informations d'un utilisateur existant.",
@@ -93,6 +106,8 @@ public class UserResourceRouter {
     @RouterOperation(
         path = "/users/{userId}",
         method = {org.springframework.web.bind.annotation.RequestMethod.DELETE},
+        beanClass = UserResourceHandler.class,
+        beanMethod = "deleteUser",
         operation = @Operation(
             summary = "Supprimer un utilisateur",
             description = "Supprime un utilisateur en fonction de son identifiant.",
