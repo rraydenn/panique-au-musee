@@ -1,0 +1,30 @@
+{
+  "name": "zrr-game-api",
+  "version": "1.0.0",
+  "description": "API serveur pour la ZRR",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prestart": "eslint .",
+    "start": "node server.cjs"
+  },
+  "keywords": [
+    "zrr",
+    "api",
+    "game",
+    "geolocation"
+  ],
+  "author": "p2020982, p1607884",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "1.8.3",
+    "express": "^4.17.1",
+    "jwt-decode": "^3.1.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0"
+  }
+}
