@@ -27,6 +27,7 @@ app.get("/", (req, res) => {
 			return res.status(403).json({ error: "Forbidden: Invalid origin" });
 		}
 	} catch (error) {
+		console.error(error);
 		return res.status(403).json({ error: "Invalid token" });
 	}
 });
