@@ -48,3 +48,27 @@ deploy_SPA:
     - *before_script_common
   script:
     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY client_SPA.html gitlabci@192.168.75.94:/usr/share/nginx/html/index.html
+
+deploy_express_app:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "api"'  # S'exécute uniquement sur la branche 'api'
+      changes:
+        - api/**  # Déploiement uniquement si des fichiers dans 'api' changent
+  before_script:
+    - chmod +x setup-mvn-proxy.sh
+    - ./setup-mvn-proxy.sh
+    - chmod 400 $CI_SSH_KEY
+    - apk add openssh-client rsync  # Installation de rsync
+  script:
+    - cd api
+    # Création d'un script de déploiement temporaire
+    - echo '#!/bin/sh' > deploy.sh
+    - echo 'cd /opt/express' >> deploy.sh
+    - echo 'npm install' >> deploy.sh
+    - echo 'npm run prestart' >> deploy.sh
+    - echo 'pm2 restart server.js || pm2 start server.js' >> deploy.sh
+    - chmod +x deploy.sh
+    # Synchronisation des fichiers avec rsync
+    - rsync -avz --exclude='node_modules' -e "ssh -i $CI_SSH_KEY -o StrictHostKeyChecking=no" ./ gitlabci@192.168.75.94:/opt/express/
+    # Exécution du script de déploiement
+    - ssh -i $CI_SSH_KEY -o StrictHostKeyChecking=no gitlabci@192.168.75.94 "cd /opt/express && ./deploy.sh"
