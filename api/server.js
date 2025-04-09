@@ -2,6 +2,7 @@ import express from "express";
 import jwtDecode from "jwt-decode";
 import path from "path";
 import { fileURLToPath } from "url";
+import gameRouter from "./router/gameRouter.js"; // Import du routeur de jeu
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,6 +12,9 @@ const PORT = 3376; // Choisissez le port que vous souhaitez
 
 // Servir les fichiers statiques depuis "public" sous "/static"
 app.use("/static", express.static(path.join(__dirname, "public")));
+
+// Routes du jeu
+app.use("/game", verifyJWT, gameRouter);  // On applique le middleware de vérification JWT sur toutes les routes "/game"
 
 // Route GET /
 app.get("/", (req, res) => {
