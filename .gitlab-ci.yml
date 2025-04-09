@@ -21,6 +21,7 @@ deploy_tomcat:
     - if: '$CI_COMMIT_BRANCH == "main"'  # S'exécute uniquement sur la branche `main`
       changes:
         - users/**  # Déploiement uniquement si des fichiers dans `users` changent
+  when: manual  # Déploiement manuel
   before_script:
     - *before_script_common
   script:
@@ -33,6 +34,7 @@ deploy_SPA:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - client_SPA.html  # Déploiement uniquement si `client_SPA.html` change
+  when: manual  # Déploiement manuel
   before_script:
     - *before_script_common
   script:
@@ -43,6 +45,7 @@ deploy_express_app:
     - if: '$CI_COMMIT_BRANCH == "api"'  # S'exécute uniquement sur la branche 'api'
       changes:
         - api/**  # Déploiement uniquement si des fichiers dans 'api' changent
+  when: manual  # Déploiement manuel
   before_script:
     - chmod +x setup-mvn-proxy.sh
     - ./setup-mvn-proxy.sh
