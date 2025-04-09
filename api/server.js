@@ -2,50 +2,28 @@ import express from "express";
 import jwtDecode from "jwt-decode";
 import path from "path";
 import { fileURLToPath } from "url";
-import gameRouter from "./router/gameRouter.js"; // Import du routeur de jeu
+import adminRouter from "./routes/admin.js";
+import gameRouter from "./routes/game.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3376; // Choisissez le port que vous souhaitez
+const PORT = 3376;
+
+// Add JSON body parser middleware
+app.use(express.json());
 
 // Servir les fichiers statiques depuis "public" sous "/static"
 app.use("/static", express.static(path.join(__dirname, "public")));
 
-// Routes du jeu
-app.use("/game", verifyJWT, gameRouter);  // On applique le middleware de vérification JWT sur toutes les routes "/game"
-
-// Route GET /
-app.get("/", (req, res) => {
-	try {
-		const decoded = verifyJWT(req);
-		res.status(200).send(`Bonjour ${decoded.sub}`);
-	} catch (err) {
-		res.status(err.status || 500).json({ error: err.message || "Internal server error" });
-	}
-});
-
-//Middleware 404 - route non trouvée
-app.use((req, res, next) => {
-	res.status(404).send("Route non trouvée");
-	next();
-});
-
-// Middleware d’erreur globale (erreurs non attrapées ailleurs)
-app.use((err, req, res, next) => {
-	console.error("Erreur serveur :", err.stack);
-	res.status(500).send("Une erreur interne est survenue !");
-	next();
-});
-
 // Middleware d'authentification JWT
-function verifyJWT(req) {
+function verifyJWTMiddleware(req, res, next) {
 	const authHeader = req.headers["authorization"];
 	const origin = req.headers["origin"] || "http://localhost";
 
 	if (!authHeader) {
-		throw { status: 401, message: "Unauthorized: No token provided" };
+		return res.status(401).json({ message: "Unauthorized: No token provided" });
 	}
 
 	const token = authHeader.substring(7); // "Bearer " = 7 caractères
@@ -54,18 +32,40 @@ function verifyJWT(req) {
 	try {
 		decodedToken = jwtDecode(token);
 	} catch {
-		throw { status: 403, message: "Invalid token" };
+		return res.status(403).json({ message: "Invalid token" });
 	}
 
 	const allowedOrigins = ["http://localhost", "https://192.168.75.94"];
 
 	if (!allowedOrigins.includes(origin) || !allowedOrigins.includes(decodedToken.origin)) {
-		throw { status: 403, message: "Forbidden: Invalid origin" };
+		return res.status(403).json({ message: "Forbidden: Invalid origin" });
 	}
 
-	return decodedToken;
+	req.user = decodedToken; // Store decoded token in request object
+	next();
 }
 
+// Routes du jeu avec vérification JWT
+app.use("/game", verifyJWTMiddleware, gameRouter);
+
+// Routes d'administration avec vérification JWT
+app.use("/admin", verifyJWTMiddleware, adminRouter);
+
+// Route GET /
+app.get("/", verifyJWTMiddleware, (req, res) => {
+	res.status(200).send(`Bonjour ${req.user.sub}`);
+});
+
+// Middleware 404 - route non trouvée
+app.use((req, res) => {
+	res.status(404).send("Route non trouvée");
+});
+
+// Middleware d'erreur globale (erreurs non attrapées ailleurs)
+app.use((err, req, res) => {
+	console.error("Erreur serveur :", err.stack);
+	res.status(500).send("Une erreur interne est survenue !");
+});
 
 app.listen(PORT, () => {
 	console.log(`Serveur démarré sur http://localhost:${PORT}`);
