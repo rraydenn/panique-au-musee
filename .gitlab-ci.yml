@@ -42,7 +42,7 @@ deploy_SPA:
 
 deploy_express_app:
   rules:
-    - if: '$CI_COMMIT_BRANCH == "api"'  # S'exécute uniquement sur la branche 'api'
+    - if: '$CI_COMMIT_BRANCH == "main"'  # S'exécute uniquement sur la branche 'api'
       changes:
         - api/**  # Déploiement uniquement si des fichiers dans 'api' changent
   when: manual  # Déploiement manuel
