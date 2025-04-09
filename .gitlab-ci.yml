@@ -28,17 +28,6 @@ deploy_tomcat:
     - mvn clean package
     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY target/users.war gitlabci@192.168.75.94:/opt/tomcat/webapps/users.war
 
-deploy_express:
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - server_express/**  # Déploiement uniquement si des fichiers dans `server_express` changent
-  before_script:
-    - *before_script_common
-  script:
-    - cd server_express
-    - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY server.js gitlabci@192.168.75.94:/opt/express/server.js
-
 deploy_SPA:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
