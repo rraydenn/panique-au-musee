@@ -24,8 +24,8 @@ export default {
     // Stop execution of the suite after the first spec failure  
     stopOnSpecFailure: false,
 
-    // Run specs in semi-random order
-    random: true,
+    // Run specs in order
+    random: false,
     
     // Prevent duplicate spec names
     forbidDuplicateNames: true
