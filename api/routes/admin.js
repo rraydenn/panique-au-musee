@@ -68,7 +68,8 @@ router.post('/player-role', (req, res) => {
 		id: username,
 		role,
 		position: { latitude: 0, longitude: 0 },
-		treated: 0
+		showcases: 0,
+		...(role === 'POLICIER' && { terminated: 0 }) // Ajoute terminated uniquement si policier
 	});
 	return result.error ? res.status(400).json(result) : res.status(200).json({ username, role });	
 });

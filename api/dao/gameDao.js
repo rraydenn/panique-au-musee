@@ -2,7 +2,8 @@ import haversine from 'haversine-distance';
 
 class DAO {
 	constructor() {
-		this.resources = [];  // Pour stocker les ressources (joueurs, vitrines)
+		this.resources = [  // Pour stocker les ressources (joueurs, vitrines)
+		];
 		this.zrr = null;  // Limites de la ZRR
 	}
 
@@ -80,9 +81,9 @@ class DAO {
 		nearbyVitrine.ttl = 0;
 	
 		// Incrémenter compteur du joueur
-		user.traited = (user.traited || 0) + 1;
+		user.showcases = (user.showcases || 0) + 1;
 	
-		return { success: true, vitrine: nearbyVitrine.id, treatedCount: user.traited };
+		return { success: true, vitrine: nearbyVitrine.id, treatedCount: user.showcases };
 	}
 
 	// Capturer un voleur
@@ -105,10 +106,7 @@ class DAO {
 		}
 
 		// Capture réussie, incrémenter le compteur du policier
-		//policeman.capturedVoleur = (policeman.capturedVoleur || 0) + 1;
-
-		// Optionnel : marquer le voleur comme capturé
-		//thief.captured = true;
+		policeman.terminated = (policeman.terminated || 0) + 1;
 
 		return { success: true, capturedVoleur: thief.id};
 	}

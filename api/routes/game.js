@@ -3,7 +3,7 @@ import DAO from "../dao/gameDao.js";  // Import du DAO pour la gestion des resso
 
 const router = express.Router();
 
-// 1. Modifier la position d'une ressource (joueur)
+// 1. Modifier la position d'une ressource
 router.put("/resource/:id/position", (req, res) => {
 	const { id } = req.params;
 	const { latitude, longitude } = req.body;
@@ -24,14 +24,14 @@ router.get("/resources", (req, res) => {
 
 // 3. Traiter une vitrine
 router.post("/treat-vitrine", (req, res) => {
-	const userId = req.user.sub; // ou `.id` selon le JWT A REVOIR CAR PAS d'id dans le JWT MAIS VOIR CREATION DANS LE DAO
+	const userId = req.user.sub;
 	const result = DAO.treatVitrine(userId);
 	return result.error ? res.status(400).json(result) : res.json(result);
 });
 
 // 4. Route pour capturer un voleur
 router.post('/capture-voleur', (req, res) => {
-	const userId = req.user.sub; // L'ID de l'utilisateur dans le JWT A REVOIR CAR PAS d'id dans le JWT MAIS VOIR CREATION DANS LE DAO
+	const userId = req.user.sub;
 	const result = DAO.captureVoleur(userId);
 	return result.error ? res.status(400).json(result) : res.json(result);
 });
