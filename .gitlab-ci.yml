@@ -51,6 +51,7 @@ deploy_admin:
     - apk add nodejs npm openssh-client
   script:
     - cd admin
+    - npm install
     - npm run build
     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY -r dist/* gitlabci@192.168.75.94:/usr/share/nginx/html/secret/
     - ssh -i $CI_SSH_KEY -o StrictHostKeyChecking=no gitlabci@192.168.75.94 << 'EOF'
