@@ -33,4 +33,14 @@ Fini (màj: 19/03)
 
 ## TP3
 
-En cours (màj: 19/03)
+Fini (màj: 16/04)
+
+## TP4
+
+Fini (màj 23/04)
+revoir jasmine mais tout est tester au niveau de la page de log et admin
+
+## TP5
+
+En cours (16/04)
+début du TP jusqu'à 2.2
