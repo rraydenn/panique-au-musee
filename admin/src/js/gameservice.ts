@@ -5,10 +5,10 @@ import { apiPath, refreshInterval } from './config';
 interface Resource {
     id: string;
     position: {
-        lat: number;
-        lon: number;
+        latitude: number;
+        longitude: number;
     };
-    type: string;
+    role: string;
     // Autres propriétés potentielles des ressources
 }
 
@@ -68,10 +68,10 @@ class GameService {
             return;
         }
         
-        fetch(`${apiPath}/resources`, {
+        fetch(`${apiPath}/game/resources`, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `${token}`,
                 'Content-Type': 'application/json'
             }
         })
@@ -82,13 +82,18 @@ class GameService {
             return response.json();
         })
         .then(data => {
-            this.updateResources(data.resources);
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                console.error('Données inattendu ou vide: ', data);
+                return;
+            } else {
+                this.updateResources(data);
+            }
         })
         .catch(error => {
             console.error('Erreur lors de la récupération des ressources:', error);
         });
     }
-    
+
     // Mettre à jour les ressources sur la carte
     private updateResources(resources: Resource[]): void {
         // Collecter les IDs des ressources actives
@@ -104,12 +109,12 @@ class GameService {
             // Si le marqueur existe déjà, mettre à jour sa position
             if (this.resourceMarkers.has(resource.id)) {
                 const marker = this.resourceMarkers.get(resource.id)!;
-                marker.setLatLng([resource.position.lat, resource.position.lon]);
+                marker.setLatLng([resource.position.latitude, resource.position.longitude]);
                 marker.getPopup()?.setContent(popupContent);
             } 
             // Sinon, créer un nouveau marqueur
             else {
-                const marker = L.marker([resource.position.lat, resource.position.lon])
+                const marker = L.marker([resource.position.latitude, resource.position.longitude])
                     .bindPopup(popupContent)
                     .addTo(this.map);
                 
@@ -130,16 +135,24 @@ class GameService {
     
     // Créer le contenu du popup selon le type de ressource
     private createPopupContent(resource: Resource): string {
-        // Personnaliser selon le type de ressource
-        switch (resource.type) {
-            case 'ARTIFACT':
-                return `<b>Artefact</b><br>ID: ${resource.id}`;
-            case 'PLAYER':
-                return `<b>Joueur</b><br>ID: ${resource.id}`;
-            default:
-                return `<b>${resource.type}</b><br>ID: ${resource.id}`;
-        }
+        const flattenObject = (obj: any, prefix = ''): [string, any][] => {
+            return Object.entries(obj).flatMap(([key, value]) => {
+                const fullKey = prefix ? `${prefix}.${key}` : key;
+                if (typeof value === 'object' && value !== null) {
+                    return flattenObject(value, fullKey);
+                } else {
+                    return [[fullKey, value]];
+                }
+            });
+        };
+
+        const lines = flattenObject(resource).map(
+            ([key, value]) => `<b>${key}:</b> ${value}`
+        );
+
+        return lines.join('<br>');
     }
+
 }
 
 export default GameService;

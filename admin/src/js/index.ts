@@ -60,31 +60,13 @@ declare global {
         const form = document.getElementById("loginForm") as HTMLFormElement | null;
         if (form) {
             form.addEventListener("submit", async (event) => {
-            event.preventDefault(); // ⛔ empêche le rechargement
-            await window.authenticateAdmin(); // ⬅️ appelle ta fonction
+            event.preventDefault(); // empêche le rechargement
+            const success = await window.authenticateAdmin(); // // appelle de la fonction de login et récupère le booléen
+            if (success) {
+                window.location.href = "admin.html"; // redirige si succès
+            }
             });
         }
     });
-
-    // Vérifier l'authentification et démarrer le polling
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     if(window.location.pathname.includes('admin.html')) {
-    //         const token = localStorage.getItem('adminToken');
-        
-    //         if (!token) {
-    //             // Rediriger vers la page de connexion si non authentifié
-    //             window.location.href = 'index.html';
-    //         } else {
-    //             // Démarrer le polling des ressources si gameService est disponible
-    //             if (window.gameService) {
-    //                 window.gameService.startPolling();
-    //                 console.log('Polling des ressources démarré');
-    //             } else {
-    //                 console.error('GameService non disponible');
-    //             }
-    //         }
-    //     }
-        
-    // });
 
     export {};

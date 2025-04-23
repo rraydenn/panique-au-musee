@@ -1,4 +1,7 @@
 describe("Authentification", function() {
+  const script = document.createElement('script');
+  script.type = 'module';
+  script.src = '../../src/js/index.ts';
     beforeEach(function() {
       // Créer le formulaire de connexion
       document.body.innerHTML = `
@@ -30,7 +33,7 @@ describe("Authentification", function() {
       document.getElementById('pass').value = '';
       
       // Appeler la fonction d'authentification
-      const result = await window.authenticateAdmin();
+      const result = await window.authenticateAdmin;
       
       // Vérifier que fetch n'a pas été appelé
       expect(global.fetch).not.toHaveBeenCalled();
@@ -58,7 +61,7 @@ describe("Authentification", function() {
       }));
       
       // Appeler la fonction d'authentification
-      const result = await window.authenticateAdmin();
+      const result = await window.authenticateAdmin;
       
       // Vérifier que fetch a été appelé avec les bons paramètres
       expect(global.fetch).toHaveBeenCalledWith(
@@ -84,7 +87,7 @@ describe("Authentification", function() {
       }));
       
       // Appeler la fonction d'authentification
-      const result = await window.authenticateAdmin();
+      const result = await window.authenticateAdmin;
       
       // Vérifier qu'une alerte a été affichée pour l'échec d'authentification
       expect(window.alert).toHaveBeenCalledWith('Authentification échouée. Mot de passe incorrect.');
@@ -98,7 +101,7 @@ describe("Authentification", function() {
       global.fetch.and.returnValue(Promise.reject(new Error('Network error')));
       
       // Appeler la fonction d'authentification
-      const result = await window.authenticateAdmin();
+      const result = await window.authenticateAdmin;
       
       // Vérifier qu'une erreur a été journalisée
       expect(console.error).toHaveBeenCalledWith('Error during authentication:', jasmine.any(Error));

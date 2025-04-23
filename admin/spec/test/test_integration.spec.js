@@ -1,8 +1,3 @@
-import map from '../src/js/map';
-import form from '../src/js/form';
-import GameService from '../src/js/gameservice';
-import { apiPath } from '../src/js/config';
-
 describe("Application Admin", function() {
   let mockMap;
   let mockForm;

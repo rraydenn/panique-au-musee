@@ -4,12 +4,29 @@ import path from "path";
 import { fileURLToPath } from "url";
 import adminRouter from "./routes/admin.js";
 import gameRouter from "./routes/game.js";
+import cors from "cors";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3376;
+
+// Définition des origines autorisées pour CORS
+const allowedOrigins = ["http://localhost", "http://localhost:8080", "https://192.168.75.94"];
+
+app.use(cors({
+	origin: function (origin, callback) {
+		if (!origin) return callback(null, true);
+		if (allowedOrigins.includes(origin)) {
+			return callback(null, true);
+		} else {
+			return callback(new Error("Not allowed by CORS"));
+		}
+	},
+	credentials: true,
+	exposedHeaders: ["Authorization"]
+}));
 
 // Add JSON body parser middleware
 app.use(express.json());
@@ -20,7 +37,7 @@ app.use("/static", express.static(path.join(__dirname, "public")));
 // Middleware d'authentification JWT
 function verifyJWTMiddleware(req, res, next) {
 	const authHeader = req.headers["authorization"];
-	const origin = req.headers["origin"] || "http://localhost";
+	const origin = req.headers["origin"] || "http://localhost" || "http://localhost:8080";
 
 	if (!authHeader) {
 		return res.status(401).json({ message: "Unauthorized: No token provided" });
@@ -34,8 +51,6 @@ function verifyJWTMiddleware(req, res, next) {
 	} catch {
 		return res.status(403).json({ message: "Invalid token" });
 	}
-
-	const allowedOrigins = ["http://localhost", "https://192.168.75.94"];
 
 	if (!allowedOrigins.includes(origin) || !allowedOrigins.includes(decodedToken.origin)) {
 		return res.status(403).json({ message: "Forbidden: Invalid origin" });

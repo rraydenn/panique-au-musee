@@ -1,7 +1,3 @@
-import GameService from '../src/js/gameservice';
-import * as L from 'leaflet';
-import { apiPath, refreshInterval } from '../src/js/config';
-
 describe("GameService", function() {
   let gameService;
   let mockMap;
@@ -72,7 +68,7 @@ describe("GameService", function() {
     
     // Vérifier que fetch a été appelé
     expect(global.fetch).toHaveBeenCalledWith(
-      `${apiPath}/resources`,
+      `${apiPath}/game/resources`,
       jasmine.objectContaining({
         headers: jasmine.objectContaining({
           'Authorization': 'Bearer mock-token'

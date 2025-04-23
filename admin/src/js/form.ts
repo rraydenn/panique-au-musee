@@ -1,6 +1,6 @@
 import { updateMap } from './map';
+import { drawZrr} from './mapState';
 import { apiPath } from './config';
-import { updateLatValue, updateLonValue, updateZoomValue } from './mapState';
 
 // Initialisation des écouteurs d'événements
 function initListeners(mymap: any): void {
@@ -30,11 +30,11 @@ function initListeners(mymap: any): void {
 
     // Écouteurs pour les boutons de la ZRR
     (document.getElementById("setZrrButton") as HTMLButtonElement).addEventListener("click", () => {
-        setZrr(mymap.getBounds());
+        setZrr(mymap);
     });
 
     (document.getElementById("sendZrrButton") as HTMLButtonElement).addEventListener("click", () => {
-        sendZrr();
+        sendZrr(mymap);
     });
 
     (document.getElementById("setTtlButton") as HTMLButtonElement).addEventListener("click", () => {
@@ -61,29 +61,30 @@ function updateZoomIndicator(zoom: number): void {
     }
 }
 
-function setZrr(bounds: any): void {
-    if (!bounds) {
+function setZrr(mymap: any) {
+    if (!mymap.getBounds()) {
         console.error("Bounds non définis");
         alert("Impossible de récupérer les limites de la carte");
         return;
     }
     
     // Récupérer les coins sud-ouest et nord-est des limites
-    const southWest = bounds.getSouthWest();
-    const northEast = bounds.getNorthEast();
+    const southWest = mymap.getBounds().getSouthWest();
+    const northEast = mymap.getBounds().getNorthEast();
     
     // Mettre à jour les champs du formulaire avec 6 décimales pour la précision
     (document.getElementById("lat1") as HTMLInputElement).value = southWest.lat.toFixed(6);
     (document.getElementById("lon1") as HTMLInputElement).value = southWest.lng.toFixed(6);
     (document.getElementById("lat2") as HTMLInputElement).value = northEast.lat.toFixed(6);
     (document.getElementById("lon2") as HTMLInputElement).value = northEast.lng.toFixed(6);
+
+    drawZrr(mymap, [southWest.lat, southWest.lng], [northEast.lat, northEast.lng]);
     
-    console.log("ZRR définie:", southWest, northEast);
     // Afficher un message de confirmation
     alert("La ZRR a été définie dans le formulaire. Cliquez sur 'Send' pour l'envoyer au serveur.");
 }
 
-function sendZrr(): void {
+function sendZrr(mymap: any): void {
     // Récupérer les valeurs des champs du formulaire
     const lat1 = parseFloat((document.getElementById("lat1") as HTMLInputElement).value);
     const lon1 = parseFloat((document.getElementById("lon1") as HTMLInputElement).value);
@@ -98,16 +99,10 @@ function sendZrr(): void {
     
     // Construire l'objet à envoyer
     const zrrData = {
-        corner1: {
-            lat: lat1,
-            lon: lon1
-        },
-        corner2: {
-            lat: lat2,
-            lon: lon2
-        }
+        point1: [ lat1, lon1 ],
+        point2: [ lat2, lon2 ]
     };
-    
+
     // Récupérer le token d'authentification
     const token = localStorage.getItem('adminToken');
     if (!token) {
@@ -122,11 +117,11 @@ function sendZrr(): void {
     sendButton.textContent = "Envoi...";
     
     // Envoyer la requête au serveur
-    fetch(`${apiPath}/zrr`, {
+    fetch(`${apiPath}/admin/zrr`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `${token}`
         },
         body: JSON.stringify(zrrData)
     })
@@ -137,6 +132,7 @@ function sendZrr(): void {
         
         if (response.ok) {
             alert("La ZRR a été définie avec succès !");
+            drawZrr(mymap, [zrrData.point1[0], zrrData.point1[1]], [zrrData.point2[0], zrrData.point2[1]]);
         } else {
             response.text().then(text => {
                 console.error("Erreur serveur:", text);
@@ -180,11 +176,11 @@ function setTtl(): void {
     ttlButton.textContent = "Envoi...";
 
     // Envoi des données au serveur Express
-    fetch(`${apiPath}/ttl`, {
+    fetch(`${apiPath}/admin/ttl`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `${token}`
         },
         body: JSON.stringify({ ttl })
     })
