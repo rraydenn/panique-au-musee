@@ -54,10 +54,6 @@ deploy_admin:
     - npm install
     - npm run build
     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY -r dist/* gitlabci@192.168.75.94:/usr/share/nginx/html/secret/
-    - ssh -i $CI_SSH_KEY -o StrictHostKeyChecking=no gitlabci@192.168.75.94 << 'EOF'
-        cd /opt/express
-        npm install
-      EOF
 
 deploy_express_app:
   rules:
