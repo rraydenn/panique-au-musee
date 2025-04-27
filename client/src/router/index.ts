@@ -38,6 +38,8 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     return { path: '/'}
+  } else {
+    next()
   }
 })
 

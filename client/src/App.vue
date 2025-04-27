@@ -77,7 +77,7 @@ const logout = async () => {
       </div>
     </header>
 
-    <RouterView/>
+    <RouterView :userRole="userRole"/>
     <div class="logout-container">
       <button @click="logout">Logout</button>
     </div>

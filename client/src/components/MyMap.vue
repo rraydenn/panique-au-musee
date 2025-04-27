@@ -231,7 +231,10 @@ export default defineComponent({
     })
     
     async function initializeMap() {
-      if (mymap) return
+      if (mymap) {
+        mymap.remove()
+
+      }
       
       // Get map element
       mapElement.value = document.getElementById('map')
