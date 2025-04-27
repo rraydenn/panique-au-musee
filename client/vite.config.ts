@@ -18,11 +18,12 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://192.168.75.94:8443/users',
         changeOrigin: true,
         headers: {
-          Origin: 'http://localhost:8080' // Explicitly set the Origin to match target
+          Origin: 'https://192.168.75.94:8443' // Explicitly set the Origin to match target
         },
+        secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
     }

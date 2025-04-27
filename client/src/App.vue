@@ -7,45 +7,39 @@ import Login from './components/Login.vue'
 const logged = ref(false)
 const loginError = ref('')
 
-const handleLogin = async () => {
-  const loginInput = document.getElementById('login') as HTMLInputElement
-  const passwordInput = document.getElementById('password') as HTMLInputElement
+const handleLoginSuccess = (token: string) => {
+  logged.value = true
+  loginError.value = ''
+}
 
-  if (!loginInput || !passwordInput) {
-    loginError.value = 'Veuillez renseigner votre login et mot de passe.'
-    return
-  }
+const handleLoginError = (error: string) => {
+  loginError.value = error
+}
 
+const logout = async () => {
   try {
-    console.log('Sending login request...')
-    const response = await fetch('/api/login', {
+    const token = localStorage.getItem('token')
+    const response = await fetch('/api/logout', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Origin': window.location.origin,
+        'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        login: loginInput.value,
-        password: passwordInput.value,
-      }),
     })
-    console.log('Response status:', response.status)
 
+    console.log('Statut de la réponse (logout):', response.status)
     if (response.ok) {
-      const authHeader = response.headers.get('authorization')
-      if(authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7)
-        localStorage.setItem('token', token)
-        console.log('Token:', token)
-        logged.value = true
-        loginError.value = ''
-      }
+      console.log('Déconnexion réussie')
     } else {
-      loginError.value = "Nom d'utilisateur ou mot de passe incorrect."
+      console.error('Déconnexion échouée')
     }
   } catch (error) {
-    console.error('Erreur lors de la connexion:', error)
-    loginError.value = 'Une erreur est survenue lors de la connexion.'
+    console.error('Erreur pendant la déconnexion:', error)
+  } finally {
+    logged.value = false
+    localStorage.removeItem('token')
+    loginError.value = ''
   }
 }
 </script>
@@ -61,11 +55,15 @@ const handleLogin = async () => {
         <nav>
           <RouterLink to="/">Home</RouterLink>
           <RouterLink to="/about">About</RouterLink>
+          <RouterLink to="/map">Map</RouterLink>
         </nav>
       </div>
     </header>
 
     <RouterView />
+    <div class="logout-container">
+      <button @click="logout">Logout</button>
+    </div>
   </div>
 
   <div v-else>
@@ -77,11 +75,10 @@ const handleLogin = async () => {
     </header>
     <Login
       :message="loginError ? loginError : 'Connectez-vous pour continuer'"
-      @loginEvent="handleLogin"
+      @login-success="handleLoginSuccess"
+      @login-error="handleLoginError"
     />
   </div>
-    <!--TODO : enlever quand la connexion fonctionne-->
-  <button @click="logged = !logged">Toggle login</button>
 </template>
 
 <style scoped>

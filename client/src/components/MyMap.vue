@@ -10,38 +10,77 @@
 
 <script lang="ts">
 import 'leaflet/dist/leaflet.css'
+import { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet'
 //import { LMap, LTileLayer } from "@vue-leaflet/vue-leaflet";
+import { defineComponent } from 'vue'
 
-// initialisation de la map
-let lat = 45.782,
-  lng = 4.8656
-const zoom = 19
-let mymap = {}
+const mapConfig = {
+  lat: 45.782,
+  lng: 4.8656,
+  zoom: 19,
+}
 
-export default {
+const markers = [
+  {
+    lat: 45.78207,
+    lng: 4.86559,
+    popup: 'Entrée du bâtiment Nautibus',
+  },
+]
+
+let mymap: LeafletMap | null = null
+let leafletMarkers: LeafletMarker[] = []
+let eventBound = false
+
+export default defineComponent({
   name: 'MyMap',
   methods: {
     // Procédure de mise à jour de la map
     updateMap: function () {
       // Affichage à la nouvelle position
-      mymap.setView([lat, lng], zoom)
+      if(mymap) {
+        mymap.setView([mapConfig.lat, mapConfig.lng], mapConfig.zoom)
+      }
 
       // La fonction de validation du formulaire renvoie false pour bloquer le rechargement de la page.
       return false
     },
-  },
-  async beforeMount() {
-    // HERE is where to load Leaflet components!
-    const L = await import('leaflet')
-    // Procédure d'initialisation
-    mymap = L.map('map', {
-      center: [lat, lng],
-      zoom: zoom,
-    })
-    //updateMap();
+    addMarkers() {
+      if(!mymap || !window.L) {
+        return
+      }
 
-    // Création d'un "tile layer" (permet l'affichage sur la carte)
-    L.tileLayer(
+      this.removeMarkers()
+      
+      markers.forEach(marker => {
+        const m = window.L.marker([marker.lat, marker.lng])
+          .addTo(mymap as LeafletMap)
+        
+        if(marker.popup) {
+          m.bindPopup(marker.popup)
+        }
+
+        leafletMarkers.push(m)
+      })
+    },
+    removeMarkers() {
+      if(!mymap) return
+
+      leafletMarkers.forEach(marker => {
+        if(mymap) 
+          mymap.removeLayer(marker)
+      })
+
+      leafletMarkers = []
+    },
+    async initializeMap() {
+      const L = await import('leaflet')
+      mymap = L.map('map', {
+        center: [mapConfig.lat, mapConfig.lng],
+        zoom: mapConfig.zoom,
+      })
+
+      L.tileLayer(
       'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=pk.eyJ1IjoieGFkZXMxMDExNCIsImEiOiJjbGZoZTFvbTYwM29sM3ByMGo3Z3Mya3dhIn0.df9VnZ0zo7sdcqGNbfrAzQ',
       {
         maxZoom: 22,
@@ -53,25 +92,34 @@ export default {
         id: 'mapbox/streets-v11',
         tileSize: 512,
         zoomOffset: -1,
-        accessToken:
-          'pk.eyJ1IjoieGFkZXMxMDExNCIsImEiOiJjbGZoZTFvbTYwM29sM3ByMGo3Z3Mya3dhIn0.df9VnZ0zo7sdcqGNbfrAzQ',
       },
-    ).addTo(mymap)
+      ).addTo(mymap)
 
-    // Ajout d'un marker
-    L.marker([45.78207, 4.86559])
-      .addTo(mymap)
-      .bindPopup('Entrée du bâtiment<br><strong>Nautibus</strong>.')
-      .openPopup()
+      mymap.on('click', (e) => {
+        mapConfig.lat = e.latlng.lat
+        mapConfig.lng = e.latlng.lng
+        this.updateMap()
+      })
 
-    // Clic sur la carte
-    mymap.on('click', (e) => {
-      lat = e.latlng.lat
-      lng = e.latlng.lng
-      this.updateMap()
-    })
+      this.addMarkers()
+
+    }
   },
-}
+  async mounted() {
+    await this.initializeMap()
+
+    if(!eventBound) {
+      eventBound = true
+    }
+  },
+  beforeUnmount() {
+    this.removeMarkers()
+    if(mymap) {
+      mymap.remove()
+      mymap = null
+    }
+  }
+})
 </script>
 
 <style scoped>
