@@ -1,11 +1,25 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
 import Login from './components/Login.vue'
 
 const logged = ref(false)
 const loginError = ref('')
+const login = ref('')
+const userRole = ref('')
+
+onMounted(() => {
+  const token = localStorage.getItem('token')
+  login.value = localStorage.getItem('login') || ''
+  if (token) {
+    logged.value = true
+    loginError.value = ''
+  } else {
+    logged.value = false
+    loginError.value = 'Veuillez vous connecter.'
+  }
+})
 
 const handleLoginSuccess = (token: string) => {
   logged.value = true
@@ -50,17 +64,18 @@ const logout = async () => {
       <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
       <div class="wrapper">
-        <HelloWorld msg="Bienvenue ! Vous êtes connecté." />
+        <HelloWorld :msg="`Bienvenue ${userRole} !`" />
 
         <nav>
           <RouterLink to="/">Home</RouterLink>
           <RouterLink to="/about">About</RouterLink>
           <RouterLink to="/map">Map</RouterLink>
+          <RouterLink to="/profile">Profile</RouterLink>
         </nav>
       </div>
     </header>
 
-    <RouterView />
+    <RouterView/>
     <div class="logout-container">
       <button @click="logout">Logout</button>
     </div>

@@ -50,6 +50,7 @@ export default {
             const token = authHeader.substring(7)
             localStorage.setItem('token', token)
             console.log('Token:', token)
+            localStorage.setItem('login', loginValue.value)
             emit('login-success', token)
           }
         } else {

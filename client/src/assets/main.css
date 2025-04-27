@@ -33,3 +33,59 @@ a,
     padding: 0 2rem;
   }
 }
+
+
+.player-marker {
+  background-color: #2c3e50;
+  border-radius: 50%;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  width: 30px !important;
+  height: 30px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.local-player {
+  background-color: #41b883 !important;
+  z-index: 1000;
+}
+
+.player-voleur {
+  background-color: #e74c3c;
+}
+
+.player-policier {
+  background-color: #3498db;
+}
+
+.vitrine-marker {
+  border-radius: 50%;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  width: 30px !important;
+  height: 30px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vitrine-open {
+  background-color: #f1c40f;
+}
+
+.vitrine-looted {
+  background-color: #e74c3c;
+}
+
+.vitrine-closed {
+  background-color: #3498db;
+}
+
+.marker-content {
+  padding: 2px 5px;
+  font-size: 12px;
+}

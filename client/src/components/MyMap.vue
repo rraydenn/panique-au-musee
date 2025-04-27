@@ -5,118 +5,266 @@
       <strong>TODO :</strong> mettre à jour les positions des différents objets sur la carte.
     </p>
     <div id="map" class="map" ref="map"></div>
+
+    <div v-if="nearbyVitrine" class="vitrine-overlay">
+      <h3>Vitrine Trouvée!</h3>
+      <p>Vous êtes à proximité d'une vitrine.</p>
+      <p v-if="userRole === 'voleur'">Voler cette vitrine?</p>
+      <p v-else>Sécuriser cette vitrine?</p>
+      <button @click="interactWithVitrine">
+        {{  userRole === 'voleur' ? 'Voler' : 'Sécuriser' }}
+      </button>
+    </div>
+
+    <div class="game-stats">
+      <p>Role: {{ userRole }}</p>
+      <p>Score: {{ gameService.localPlayer.score }}</p>
+      <p>Vitrines actives: {{ activeVitrinesCount }}</p>
+    </div>
   </section>
 </template>
 
 <script lang="ts">
 import 'leaflet/dist/leaflet.css'
-import { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet'
+import { Map as LeafletMap, Marker, Polygon, Icon, DivIcon, LatLng, LatLngBounds } from 'leaflet'
 //import { LMap, LTileLayer } from "@vue-leaflet/vue-leaflet";
-import { defineComponent } from 'vue'
-
-const mapConfig = {
-  lat: 45.782,
-  lng: 4.8656,
-  zoom: 19,
-}
-
-const markers = [
-  {
-    lat: 45.78207,
-    lng: 4.86559,
-    popup: 'Entrée du bâtiment Nautibus',
-  },
-]
+import { defineComponent, onMounted, onBeforeUnmount, ref, computed } from 'vue'
+import gameService from '@/services/game'
 
 let mymap: LeafletMap | null = null
-let leafletMarkers: LeafletMarker[] = []
-let eventBound = false
+let markers: Record<string, Marker> = {}
+let zrrPolygon: Polygon | null = null
 
 export default defineComponent({
   name: 'MyMap',
-  methods: {
-    // Procédure de mise à jour de la map
-    updateMap: function () {
-      // Affichage à la nouvelle position
-      if(mymap) {
-        mymap.setView([mapConfig.lat, mapConfig.lng], mapConfig.zoom)
-      }
-
-      // La fonction de validation du formulaire renvoie false pour bloquer le rechargement de la page.
-      return false
-    },
-    addMarkers() {
-      if(!mymap || !window.L) {
-        return
-      }
-
-      this.removeMarkers()
+  props: {
+    userRole: {
+      type: String,
+      default: ''
+    }
+  },
+  setup(props) {
+    const mapElement = ref<HTMLElement | null>(null)
+    const nearbyVitrine = ref<string | null>(null)
+    
+    const activeVitrinesCount = computed(() => {
+      return gameService.vitrines.filter(v => v.status === 'open').length
+    })
+    
+    const updateMap = () => {
+      if (!mymap) return
       
-      markers.forEach(marker => {
-        const m = window.L.marker([marker.lat, marker.lng])
-          .addTo(mymap as LeafletMap)
+      // Update player markers
+      updatePlayerMarkers()
+      
+      // Update vitrine markers
+      updateVitrineMarkers()
+      
+      // Update ZRR polygon
+      updateZRRPolygon()
+    }
+    
+    const updatePlayerMarkers = () => {
+      // Remove old markers
+      Object.values(markers)
+        .filter(m => m.getElement()?.classList.contains('player-marker'))
+        .forEach(m => mymap?.removeLayer(m))
+      
+      // Add local player marker
+      const localPlayerPos = new LatLng(
+        gameService.localPlayer.position.lat,
+        gameService.localPlayer.position.lng
+      )
+      
+      const localPlayerIcon = new DivIcon({
+        className: 'player-marker local-player',
+        html: `<div class="marker-content"><span>${gameService.localPlayer.username}</span></div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      })
+      
+      const localPlayerMarker = new Marker(localPlayerPos, { icon: localPlayerIcon })
+        .addTo(mymap!)
+      
+      markers[gameService.localPlayer.id] = localPlayerMarker
+      
+      // Add other players of same role
+      gameService.players
+        .filter(p => p.role === props.userRole)
+        .forEach(player => {
+          const pos = new LatLng(player.position.lat, player.position.lng)
+          const icon = new DivIcon({
+            className: `player-marker player-${player.role}`,
+            html: `<div class="marker-content"><span>${player.username}</span></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+          })
+          
+          const marker = new Marker(pos, { icon })
+            .addTo(mymap!)
+          
+          markers[player.id] = marker
+        })
+    }
+    
+    const updateVitrineMarkers = () => {
+      // Remove old vitrine markers
+      Object.values(markers)
+        .filter(m => m.getElement()?.classList.contains('vitrine-marker'))
+        .forEach(m => mymap?.removeLayer(m))
+      
+      // Add vitrine markers
+      gameService.vitrines.forEach(vitrine => {
+        const pos = new LatLng(vitrine.position.lat, vitrine.position.lng)
         
-        if(marker.popup) {
-          m.bindPopup(marker.popup)
+        // Different styles based on vitrine status
+        let className = 'vitrine-marker'
+        let html = ''
+        
+        if (vitrine.status === 'open') {
+          className += ' vitrine-open'
+          html = `<div class="marker-content"><span>TTL: ${vitrine.ttl}s</span></div>`
+        } else if (vitrine.status === 'looted') {
+          className += ' vitrine-looted'
+          html = `<div class="marker-content"><span>Looted</span></div>`
+        } else {
+          className += ' vitrine-closed'
+          html = `<div class="marker-content"><span>Secured</span></div>`
         }
-
-        leafletMarkers.push(m)
+        
+        const icon = new DivIcon({
+          className,
+          html,
+          iconSize: [30, 30],
+          iconAnchor: [15, 15]
+        })
+        
+        const marker = new Marker(pos, { icon })
+          .addTo(mymap!)
+        
+        markers[vitrine.id] = marker
       })
-    },
-    removeMarkers() {
-      if(!mymap) return
-
-      leafletMarkers.forEach(marker => {
-        if(mymap) 
-          mymap.removeLayer(marker)
+    }
+    
+    const updateZRRPolygon = () => {
+      // Remove old ZRR polygon
+      if (zrrPolygon && mymap) {
+        mymap.removeLayer(zrrPolygon)
+        zrrPolygon = null
+      }
+      
+      // Add ZRR polygon if available
+      if (gameService.zrr.value) {
+        const { bounds } = gameService.zrr.value
+        const latLngs = [
+          new LatLng(bounds[0].lat, bounds[0].lng),
+          new LatLng(bounds[0].lat, bounds[1].lng),
+          new LatLng(bounds[1].lat, bounds[1].lng),
+          new LatLng(bounds[1].lat, bounds[0].lng)
+        ]
+        
+        zrrPolygon = new Polygon(latLngs, {
+          color: 'red',
+          fillColor: '#f03',
+          fillOpacity: 0.1,
+          weight: 2
+        }).addTo(mymap!)
+        
+        // Fit map to ZRR bounds
+        mymap?.fitBounds(new LatLngBounds(latLngs))
+      }
+    }
+    
+    const interactWithVitrine = async () => {
+      if (nearbyVitrine.value) {
+        await gameService.interactWithVitrine(nearbyVitrine.value)
+        nearbyVitrine.value = null
+        updateMap()
+      }
+    }
+    
+    const checkVitrineProximity = () => {
+      nearbyVitrine.value = null
+      
+      for (const vitrine of gameService.vitrines) {
+        if (vitrine.status === 'open') {
+          const playerPos = gameService.localPlayer.position
+          const vitrinePos = vitrine.position
+          
+          const distance = gameService.calculateDistance(playerPos, vitrinePos)
+          
+          if (distance <= 5) {
+            nearbyVitrine.value = vitrine.id
+            break
+          }
+        }
+      }
+    }
+    
+    onMounted(async () => {
+      // Initialize Leaflet map
+      await initializeMap()
+      
+      // Initialize game data with mock user ID
+      const userId = localStorage.getItem('userId') || 'user-123'
+      await gameService.init(userId, props.userRole)
+      
+      // Update map with initial game data
+      updateMap()
+      
+      // Set interval to update map regularly
+      const updateInterval = setInterval(() => {
+        updateMap()
+        checkVitrineProximity()
+      }, 1000)
+      
+      // Cleanup on unmount
+      onBeforeUnmount(() => {
+        clearInterval(updateInterval)
+        gameService.cleanup()
+        
+        if (mymap) {
+          mymap.remove()
+          mymap = null
+        }
       })
-
-      leafletMarkers = []
-    },
-    async initializeMap() {
+    })
+    
+    async function initializeMap() {
+      if (mymap) return
+      
+      // Get map element
+      mapElement.value = document.getElementById('map')
+      if (!mapElement.value) return
+      
       const L = await import('leaflet')
       mymap = L.map('map', {
-        center: [mapConfig.lat, mapConfig.lng],
-        zoom: mapConfig.zoom,
+        center: [45.78200, 4.86550], // Lyon coordinates
+        zoom: 19
       })
-
+      
       L.tileLayer(
-      'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=pk.eyJ1IjoieGFkZXMxMDExNCIsImEiOiJjbGZoZTFvbTYwM29sM3ByMGo3Z3Mya3dhIn0.df9VnZ0zo7sdcqGNbfrAzQ',
-      {
-        maxZoom: 22,
-        minZoom: 1,
-        attribution:
-          'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
-          '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-          'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-        id: 'mapbox/streets-v11',
-        tileSize: 512,
-        zoomOffset: -1,
-      },
+        'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=pk.eyJ1IjoieGFkZXMxMDExNCIsImEiOiJjbGZoZTFvbTYwM29sM3ByMGo3Z3Mya3dhIn0.df9VnZ0zo7sdcqGNbfrAzQ',
+        {
+          maxZoom: 22,
+          minZoom: 1,
+          attribution:
+            'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+            '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+            'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+          id: 'mapbox/streets-v11',
+          tileSize: 512,
+          zoomOffset: -1,
+        }
       ).addTo(mymap)
-
-      mymap.on('click', (e) => {
-        mapConfig.lat = e.latlng.lat
-        mapConfig.lng = e.latlng.lng
-        this.updateMap()
-      })
-
-      this.addMarkers()
-
     }
-  },
-  async mounted() {
-    await this.initializeMap()
-
-    if(!eventBound) {
-      eventBound = true
-    }
-  },
-  beforeUnmount() {
-    this.removeMarkers()
-    if(mymap) {
-      mymap.remove()
-      mymap = null
+    
+    return {
+      mapElement,
+      nearbyVitrine,
+      activeVitrinesCount,
+      gameService,
+      interactWithVitrine
     }
   }
 })
@@ -124,8 +272,76 @@ export default defineComponent({
 
 <style scoped>
 .map {
-  height: 400px;
+  height: 500px;
   width: 100%;
-  border: 1px solid;
+  border: 1px solid var(--color-border);
+  position: relative;
+  z-index: 1;
+}
+
+.vitrine-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  text-align: center;
+}
+
+.game-stats {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+/* Add these styles to your global CSS since Leaflet creates elements outside Vue components */
+:global(.player-marker) {
+  background-color: #2c3e50;
+  border-radius: 50%;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+}
+
+:global(.local-player) {
+  background-color: #41b883 !important;
+  z-index: 1000;
+}
+
+:global(.player-voleur) {
+  background-color: #e74c3c;
+}
+
+:global(.player-policier) {
+  background-color: #3498db;
+}
+
+:global(.vitrine-marker) {
+  border-radius: 50%;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+}
+
+:global(.vitrine-open) {
+  background-color: #f1c40f;
+}
+
+:global(.vitrine-looted) {
+  background-color: #e74c3c;
+}
+
+:global(.vitrine-closed) {
+  background-color: #3498db;
+}
+
+:global(.marker-content) {
+  padding: 2px 5px;
+  font-size: 12px;
 }
 </style>

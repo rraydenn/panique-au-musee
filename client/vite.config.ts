@@ -26,6 +26,9 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
+      '/game': {
+        //TODO : ajouter le serveur pour request les données de jeu (ZRR par exemple)
+      }
     }
   }
 })
