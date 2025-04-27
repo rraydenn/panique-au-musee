@@ -56,6 +56,25 @@ export default {
         } else {
           emit('login-error', "Nom d'utilisateur ou mot de passe incorrect.")
         }
+
+        const getResponse = await fetch(`/api/users/${loginValue.value}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+            'Origin': window.location.origin,
+          }
+        });
+
+        console.log('Statut de la réponse (get):', getResponse.status)
+        if (getResponse.ok) {
+          const userData = await getResponse.json()
+          console.log('Données utilisateur:', userData)
+          console.log('Rôle utilisateur:', userData.species)
+          localStorage.setItem('userRole', userData.species || 'unknown')
+        } else {
+          console.error('Erreur lors de la récupération des données utilisateur')
+        }
       } catch (error) {
         console.error('Erreur lors de la connexion:', error)
         emit('login-error', 'Une erreur est survenue lors de la connexion.')

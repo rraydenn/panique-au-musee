@@ -12,6 +12,7 @@ const userRole = ref('')
 onMounted(() => {
   const token = localStorage.getItem('token')
   login.value = localStorage.getItem('login') || ''
+  userRole.value = localStorage.getItem('userRole') || ''
   if (token) {
     logged.value = true
     loginError.value = ''
@@ -24,6 +25,7 @@ onMounted(() => {
 const handleLoginSuccess = (token: string) => {
   logged.value = true
   loginError.value = ''
+  userRole.value = localStorage.getItem('userRole') || ''
 }
 
 const handleLoginError = (error: string) => {
