@@ -7,9 +7,10 @@ import fr.univlyon1.m1if.m1if13.users.model.User;
  * DTO renvoyé pour la représentation d'un utilisateur.
  * @param login Le login de l'utilisateur
  * @param species L'espèce de l'utilisateur
+ * @param image L'image de l'utilisateur
  */
-public record UserResponseDto(String login, Species species) {
+public record UserResponseDto(String login, Species species, String image) {
     public static UserResponseDto of(User user) {
-        return new UserResponseDto(user.getLogin(), user.getSpecies());
+        return new UserResponseDto(user.getLogin(), user.getSpecies(), user.getImage());
     }
 }

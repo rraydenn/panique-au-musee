@@ -123,7 +123,7 @@ class UserResourceControllerTest {
      */
     @Test
     void getUserShouldReturn200AndCorrectContent() throws Exception {
-        UserResponseDto expectedUser = new UserResponseDto("testUser", Species.VOLEUR);
+        UserResponseDto expectedUser = new UserResponseDto("testUser", Species.VOLEUR, "12.png");
         when(userResourceService.getUser("testUser")).thenReturn(expectedUser);
 
         mockMvc.perform(get("/users/testUser")

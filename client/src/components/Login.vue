@@ -55,6 +55,7 @@ export default {
           }
         } else {
           emit('login-error', "Nom d'utilisateur ou mot de passe incorrect.")
+          return
         }
 
         const getResponse = await fetch(`/api/users/${loginValue.value}`, {
