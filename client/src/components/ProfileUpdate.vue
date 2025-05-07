@@ -43,20 +43,27 @@ export default {
                 }
 
                 const response = await fetch(`/api/users/${login}`, {
-                    method: 'POST',
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                     },
                     body: JSON.stringify({
+                        login: login,
                         password: password.value,
-                        imageUrl: imageUrl.value,
+                        image: imageUrl.value,
                     }),
                 })
 
                 if (response.ok) {
                     message.value = 'Profile updated successfully!'
                     messageType.value = 'success'
+                    const authHeader = response.headers.get('authorization')
+                    if(authHeader && authHeader.startsWith('Bearer ')) {
+                        const token = authHeader.substring(7)
+                        localStorage.setItem('token', token)
+                        console.log('Token:', token)
+                    }
                 } else {
                     message.value = 'Failed to update profile.'
                     messageType.value = 'error'
