@@ -1,8 +1,8 @@
 import { ref, reactive } from "vue";
 
 export interface Position {
-    lat: number;
-    lng: number;
+    latitude: number;
+    longitude: number;
 }
 
 export interface Resource {
@@ -34,7 +34,7 @@ class GameService {
         id: '',
         role: '',
         username: '',
-        position: { lat: 45.78200, lng: 4.86550 },
+        position: { latitude: 45.78200, longitude: 4.86550 },
         score: 0
     })
 
@@ -123,8 +123,8 @@ class GameService {
         if (!this.zrr.value) {
             this.zrr.value = {
                 bounds: [
-                    { lat: 45.7810, lng: 4.8640 },
-                    { lat: 45.7830, lng: 4.8870 }
+                    { latitude: 45.7810, longitude: 4.8640 },
+                    { latitude: 45.7830, longitude: 4.8870 }
                 ]
             };
             this.debug('info', 'generateMockData', 'Created mock ZRR', this.zrr.value);
@@ -135,19 +135,19 @@ class GameService {
                 id: 'player1',
                 role: 'policier',
                 username: 'Officier1',
-                position: { lat: 45.78220, lng: 4.86570 },
+                position: { latitude: 45.78220, longitude: 4.86570 },
             },
             {
                 id: 'player2',
                 role: 'voleur',
                 username: 'Voleur1',
-                position: { lat: 45.78180, lng: 4.86530 },
+                position: { latitude: 45.78180, longitude: 4.86530 },
             },
             {
                 id: 'player3',
                 role: 'policier',
                 username: 'Officier2',
-                position: { lat: 45.78240, lng: 4.86600 },
+                position: { latitude: 45.78240, longitude: 4.86600 },
             }
         ];
         this.debug('info', 'generateMockData', 'Created mock players', this.players);
@@ -156,14 +156,14 @@ class GameService {
             {
                 id: 'vitrine1',
                 role: 'vitrine',
-                position: { lat: 45.78210, lng: 4.86540 },
+                position: { latitude: 45.78210, longitude: 4.86540 },
                 status: 'open',
                 ttl: 60
             },
             {
                 id: 'vitrine2',
                 role: 'vitrine',
-                position: { lat: 45.78230, lng: 4.86560 },
+                position: { latitude: 45.78230, longitude: 4.86560 },
                 status: 'looted',
                 ttl: 0,
                 closedBy: 'player2'
@@ -199,10 +199,11 @@ class GameService {
             const data = await response.json();
             this.debug('info', 'fetchZRR', 'Received ZRR data', data);
 
+
             this.zrr.value = {
                 bounds: [
-                    { lat: data['limite-NO'][0], lng: data['limite-NO'][1] },
-                    { lat: data['limite-SE'][0], lng: data['limite-SE'][1] }
+                    { latitude: data.zrr['limite-NO'][0], longitude: data.zrr['limite-NO'][1] },
+                    { latitude: data.zrr['limite-SE'][0], longitude: data.zrr['limite-SE'][1] }
                 ]
             };
             
@@ -277,15 +278,15 @@ class GameService {
         this.positionUpdateInterval = window.setInterval(() => {
             const oldPos = { ...this.localPlayer.position };
             
-            this.localPlayer.position.lat += (Math.random() - 0.5) * 0.0001;
-            this.localPlayer.position.lng += (Math.random() - 0.5) * 0.0001;
+            this.localPlayer.position.latitude += (Math.random() - 0.5) * 0.0001;
+            this.localPlayer.position.longitude += (Math.random() - 0.5) * 0.0001;
             
             this.debug('info', 'positionUpdate', 'Position updated', {
                 from: oldPos,
                 to: this.localPlayer.position,
                 delta: {
-                    lat: this.localPlayer.position.lat - oldPos.lat,
-                    lng: this.localPlayer.position.lng - oldPos.lng
+                    latitude: this.localPlayer.position.latitude - oldPos.latitude,
+                    longitude: this.localPlayer.position.longitude - oldPos.longitude
                 }
             });
 
@@ -304,9 +305,9 @@ class GameService {
                 return;
             }
 
-            const { lat, lng } = this.localPlayer.position;
+            const { latitude, longitude } = this.localPlayer.position;
             
-            this.debug('info', 'updatePlayerPosition', `Sending position update for player ${this.localPlayer.id}`, { lat, lng });
+            this.debug('info', 'updatePlayerPosition', `Sending position update for player ${this.localPlayer.id}`, { latitude, longitude });
             
             const response = await fetch(`/game/resource/${this.localPlayer.id}/position`, {
                 method: 'PUT',
@@ -315,7 +316,7 @@ class GameService {
                     'Content-Type': 'application/json',
                     'Origin': window.location.origin
                 },
-                body: JSON.stringify({ lat, lng })
+                body: JSON.stringify({ latitude, longitude })
             });
             
             if (!response.ok) {
@@ -332,10 +333,10 @@ class GameService {
 
     calculateDistance(pos1: Position, pos2: Position): number {
         const R = 6371000;
-        const phi1 = pos1.lat * (Math.PI / 180);
-        const phi2 = pos2.lat * (Math.PI / 180);
-        const deltaPhi = (pos2.lat - pos1.lat) * (Math.PI / 180);
-        const deltaLambda = (pos2.lng - pos1.lng) * (Math.PI / 180);
+        const phi1 = pos1.latitude * (Math.PI / 180);
+        const phi2 = pos2.latitude * (Math.PI / 180);
+        const deltaPhi = (pos2.latitude - pos1.latitude) * (Math.PI / 180);
+        const deltaLambda = (pos2.longitude - pos1.longitude) * (Math.PI / 180);
 
         const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
             Math.cos(phi1) * Math.cos(phi2) *

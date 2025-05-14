@@ -72,8 +72,8 @@ export default defineComponent({
       
       // Add local player marker
       const localPlayerPos = new LatLng(
-        gameService.localPlayer.position.lat,
-        gameService.localPlayer.position.lng
+        gameService.localPlayer.position.latitude,
+        gameService.localPlayer.position.longitude
       )
       
       const localPlayerIcon = new DivIcon({
@@ -92,7 +92,7 @@ export default defineComponent({
       gameService.players
         .filter(p => p.role === props.userRole)
         .forEach(player => {
-          const pos = new LatLng(player.position.lat, player.position.lng)
+          const pos = new LatLng(player.position.latitude, player.position.longitude)
           const icon = new DivIcon({
             className: `player-marker player-${player.role}`,
             html: `<div class="marker-content"><span>${player.username}</span></div>`,
@@ -115,7 +115,7 @@ export default defineComponent({
       
       // Add vitrine markers
       gameService.vitrines.forEach(vitrine => {
-        const pos = new LatLng(vitrine.position.lat, vitrine.position.lng)
+        const pos = new LatLng(vitrine.position.latitude, vitrine.position.longitude)
         
         // Different styles based on vitrine status
         let className = 'vitrine-marker'
@@ -157,10 +157,10 @@ export default defineComponent({
       if (gameService.zrr.value) {
         const { bounds } = gameService.zrr.value
         const latLngs = [
-          new LatLng(bounds[0].lat, bounds[0].lng),
-          new LatLng(bounds[0].lat, bounds[1].lng),
-          new LatLng(bounds[1].lat, bounds[1].lng),
-          new LatLng(bounds[1].lat, bounds[0].lng)
+          new LatLng(bounds[0].latitude, bounds[0].longitude),
+          new LatLng(bounds[0].latitude, bounds[1].longitude),
+          new LatLng(bounds[1].latitude, bounds[1].longitude),
+          new LatLng(bounds[1].latitude, bounds[0].longitude)
         ]
         
         zrrPolygon = new Polygon(latLngs, {
@@ -206,7 +206,7 @@ export default defineComponent({
       await initializeMap()
       
       // Initialize game data with mock user ID
-      const userId = localStorage.getItem('userId') || 'user-123'
+      const userId = localStorage.getItem('login') || 'user-123'
       await gameService.init(userId, props.userRole)
       
       // Update map with initial game data
