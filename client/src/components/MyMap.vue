@@ -171,7 +171,7 @@ export default defineComponent({
         }).addTo(mymap!)
         
         // Fit map to ZRR bounds
-        mymap?.fitBounds(new LatLngBounds(latLngs))
+        //mymap?.fitBounds(new LatLngBounds(latLngs))
       }
     }
     
@@ -184,21 +184,7 @@ export default defineComponent({
     }
     
     const checkVitrineProximity = () => {
-      nearbyVitrine.value = null
-      
-      for (const vitrine of gameService.vitrines) {
-        if (vitrine.status === 'open') {
-          const playerPos = gameService.localPlayer.position
-          const vitrinePos = vitrine.position
-          
-          const distance = gameService.calculateDistance(playerPos, vitrinePos)
-          
-          if (distance <= 5) {
-            nearbyVitrine.value = vitrine.id
-            break
-          }
-        }
-      }
+      nearbyVitrine.value = gameService.checkVitrineProximity() ?? null
     }
     
     onMounted(async () => {
@@ -233,7 +219,8 @@ export default defineComponent({
     async function initializeMap() {
       if (mymap) {
         mymap.remove()
-
+        markers = {}
+        zrrPolygon = null
       }
       
       // Get map element
@@ -293,6 +280,8 @@ export default defineComponent({
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   z-index: 1000;
   text-align: center;
+  color: #2c3e50;
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
 
 .game-stats {
@@ -300,6 +289,7 @@ export default defineComponent({
   padding: 10px;
   background-color: #f5f5f5;
   border-radius: 4px;
+  color: #2c3e50;
 }
 
 /* Add these styles to your global CSS since Leaflet creates elements outside Vue components */

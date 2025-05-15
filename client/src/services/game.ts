@@ -292,6 +292,7 @@ class GameService {
 
             this.updatePlayerPosition();
             this.checkVitrineProximity();
+            this.fetchResources();
         }, 5000);
     }
 
@@ -332,6 +333,11 @@ class GameService {
     }
 
     calculateDistance(pos1: Position, pos2: Position): number {
+        if (!pos1 || !pos2 ||
+            typeof pos1.latitude !== 'number' || typeof pos1.longitude !== 'number' ||
+            typeof pos2.latitude !== 'number' || typeof pos2.longitude !== 'number') {
+          throw new Error('Positions invalides pour calcul de distance')
+        }
         const R = 6371000;
         const phi1 = pos1.latitude * (Math.PI / 180);
         const phi2 = pos2.latitude * (Math.PI / 180);
@@ -346,7 +352,7 @@ class GameService {
         const distance = R * c;
         
         // Only log this if it's close to a threshold of interest to avoid console spam
-        if (distance <= 100) {
+        if (distance <= 20) {
             this.debug('info', 'calculateDistance', 'Distance calculation', {
                 from: pos1,
                 to: pos2,
@@ -357,27 +363,31 @@ class GameService {
         return distance;
     }
 
-    private checkVitrineProximity() {
+    checkVitrineProximity() {
         this.debug('info', 'checkVitrineProximity', 'Checking proximity to vitrines');
-        
-        for (const vitrine of this.vitrines) {
-            if (vitrine.status === 'open') {
-                const distance = this.calculateDistance(
-                    this.localPlayer.position,
-                    vitrine.position
-                );
-
-                if (distance <= 50) {
-                    this.debug('info', 'checkVitrineProximity', `Player in range of vitrine ${vitrine.id}`, {
-                        distance,
-                        vitrine,
-                        playerPos: this.localPlayer.position
-                    });
-                    this.interactWithVitrine(vitrine.id);
-                    break;
+        try {
+            for (const vitrine of this.vitrines) {
+                if (vitrine.status === 'open') {
+                    const distance = this.calculateDistance(
+                        this.localPlayer.position,
+                        vitrine.position
+                    );
+    
+                    if (distance <= 5) {
+                        this.debug('info', 'checkVitrineProximity', `Player in range of vitrine ${vitrine.id}`, {
+                            distance,
+                            vitrine,
+                            playerPos: this.localPlayer.position
+                        });
+                        return vitrine.id;
+                    }
                 }
             }
         }
+        catch (error) {
+            this.debug('error', 'checkVitrineProximity', "Error checking vitrine proximity:", error);
+        }
+        
     }
 
     async interactWithVitrine(vitrineId: string) {
