@@ -79,55 +79,50 @@ class GameService {
     }
 
     async init(userId: string, role: string) {
-        this.debug('info', 'init', `Initializing game service for user ${userId} with role ${role}`);
+        //this.debug('info', 'init', `Initializing game service for user ${userId} with role ${role}`);
         
         this.localPlayer.id = userId;
         this.localPlayer.role = role;
 
-        this.debug('info', 'init', 'Generating mock data');
+        //this.debug('info', 'init', 'Generating mock data');
         this.generateMockData();
 
-        this.debug('info', 'init', 'Starting position updates');
+        //this.debug('info', 'init', 'Starting position updates');
         this.startPositionUpdates();
 
         try {
-            this.debug('info', 'init', 'Fetching ZRR...');
+            //this.debug('info', 'init', 'Fetching ZRR...');
             await this.fetchZRR();
             
-            this.debug('info', 'init', 'Fetching resources...');
+            //this.debug('info', 'init', 'Fetching resources...');
             await this.fetchResources();
             
-            this.debug('info', 'init', 'Initialization complete', {
-                zrr: this.zrr.value,
-                playersCount: this.players.length,
-                vitrinesCount: this.vitrines.length
-            });
         } catch (error) {
             this.debug('error', 'init', "Error fetching data during initialization:", error);
         }
     }
 
     cleanup() {
-        this.debug('info', 'cleanup', 'Cleaning up game service');
+        //this.debug('info', 'cleanup', 'Cleaning up game service');
         
         if (this.positionUpdateInterval) {
             window.clearInterval(this.positionUpdateInterval);
             this.positionUpdateInterval = null;
-            this.debug('info', 'cleanup', 'Position update interval cleared');
+            //this.debug('info', 'cleanup', 'Position update interval cleared');
         }
     }
 
     private generateMockData() {
-        this.debug('info', 'generateMockData', 'Generating mock game data');
+        //this.debug('info', 'generateMockData', 'Generating mock game data');
         
         if (!this.zrr.value) {
             this.zrr.value = {
                 bounds: [
-                    { latitude: 45.7810, longitude: 4.8640 },
-                    { latitude: 45.7830, longitude: 4.8870 }
+                    { latitude: 45.781649, longitude: 4.864749 },
+                    { latitude: 45.78230, longitude: 4.8670 }
                 ]
             };
-            this.debug('info', 'generateMockData', 'Created mock ZRR', this.zrr.value);
+            //this.debug('info', 'generateMockData', 'Created mock ZRR', this.zrr.value);
         }
 
         this.players = [
@@ -150,7 +145,7 @@ class GameService {
                 position: { latitude: 45.78240, longitude: 4.86600 },
             }
         ];
-        this.debug('info', 'generateMockData', 'Created mock players', this.players);
+        //this.debug('info', 'generateMockData', 'Created mock players', this.players);
 
         this.vitrines = [
             {
@@ -169,11 +164,11 @@ class GameService {
                 closedBy: 'player2'
             }
         ];
-        this.debug('info', 'generateMockData', 'Created mock vitrines', this.vitrines);
+        //this.debug('info', 'generateMockData', 'Created mock vitrines', this.vitrines);
     }
 
     async fetchZRR() {
-        this.debug('info', 'fetchZRR', 'Fetching ZRR data from server');
+        //this.debug('info', 'fetchZRR', 'Fetching ZRR data from server');
         
         try {
             const token = localStorage.getItem("token");
@@ -182,7 +177,7 @@ class GameService {
                 return;
             }
 
-            this.debug('info', 'fetchZRR', 'Making API request to /game/zrr');
+            //this.debug('info', 'fetchZRR', 'Making API request to /game/zrr');
             const response = await fetch('/game/zrr', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -197,7 +192,7 @@ class GameService {
             }
 
             const data = await response.json();
-            this.debug('info', 'fetchZRR', 'Received ZRR data', data);
+            //this.debug('info', 'fetchZRR', 'Received ZRR data', data);
 
 
             this.zrr.value = {
@@ -207,7 +202,7 @@ class GameService {
                 ]
             };
             
-            this.debug('info', 'fetchZRR', 'ZRR data processed', this.zrr.value);
+            //this.debug('info', 'fetchZRR', 'ZRR data processed', this.zrr.value);
         } catch (error) {
             this.debug('error', 'fetchZRR', "Error fetching ZRR:", error);
             throw error; // Re-throw to allow caller to handle
@@ -215,7 +210,7 @@ class GameService {
     }
 
     async fetchResources() {
-        this.debug('info', 'fetchResources', 'Fetching game resources from server');
+        //this.debug('info', 'fetchResources', 'Fetching game resources from server');
         
         try {
             const token = localStorage.getItem('token');
@@ -224,7 +219,7 @@ class GameService {
                 return;
             }
 
-            this.debug('info', 'fetchResources', 'Making API request to /game/resources');
+            //this.debug('info', 'fetchResources', 'Making API request to /game/resources');
             const response = await fetch('/game/resources', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -239,7 +234,7 @@ class GameService {
             }
 
             const resources = await response.json();
-            this.debug('info', 'fetchResources', 'Received resources data', resources);
+            //this.debug('info', 'fetchResources', 'Received resources data', resources);
 
             const newPlayers = resources
                 .filter((r: any) => r.role !== 'vitrine' && r.id !== this.localPlayer.id)
@@ -248,10 +243,20 @@ class GameService {
                     role: p.role,
                     username: p.username || p.id,
                     position: p.position,
+                    score: p.showcases || 0
                 }));
             
-            this.debug('info', 'fetchResources', `Processed ${newPlayers.length} players`, newPlayers);
+            //this.debug('info', 'fetchResources', `Processed ${newPlayers.length} players`, newPlayers);
             this.players = newPlayers;
+
+            const localPlayerData = resources.find((r: any) => r.role !== 'vitrine' && r.id === this.localPlayer.id);
+            if (localPlayerData) {
+                this.localPlayer.id = localPlayerData.id;
+                this.localPlayer.role = localPlayerData.role;
+                this.localPlayer.username = localPlayerData.username || localPlayerData.id;
+                this.localPlayer.position = localPlayerData.position;
+                this.localPlayer.score = localPlayerData.showcases || 0;
+            }
 
             const newVitrines = resources
                 .filter((r: any) => r.role === 'vitrine')
@@ -264,7 +269,7 @@ class GameService {
                     closedBy: v.closedBy
                 }));
             
-            this.debug('info', 'fetchResources', `Processed ${newVitrines.length} vitrines`, newVitrines);
+            //this.debug('info', 'fetchResources', `Processed ${newVitrines.length} vitrines`, newVitrines);
             this.vitrines = newVitrines;
         } catch (error) {
             this.debug('error', 'fetchResources', "Error fetching resources:", error);
@@ -273,31 +278,18 @@ class GameService {
     }
 
     private startPositionUpdates() {
-        this.debug('info', 'startPositionUpdates', 'Starting position update interval (5000ms)');
+        //this.debug('info', 'startPositionUpdates', 'Starting position update interval (5000ms)');
         
-        this.positionUpdateInterval = window.setInterval(() => {
-            const oldPos = { ...this.localPlayer.position };
-            
+        this.positionUpdateInterval = window.setInterval(() => {            
             this.localPlayer.position.latitude += (Math.random() - 0.5) * 0.0001;
             this.localPlayer.position.longitude += (Math.random() - 0.5) * 0.0001;
-            
-            this.debug('info', 'positionUpdate', 'Position updated', {
-                from: oldPos,
-                to: this.localPlayer.position,
-                delta: {
-                    latitude: this.localPlayer.position.latitude - oldPos.latitude,
-                    longitude: this.localPlayer.position.longitude - oldPos.longitude
-                }
-            });
 
             this.updatePlayerPosition();
-            this.checkVitrineProximity();
-            this.fetchResources();
         }, 5000);
     }
 
     async updatePlayerPosition() {
-        this.debug('info', 'updatePlayerPosition', 'Updating player position on server', this.localPlayer.position);
+        //this.debug('info', 'updatePlayerPosition', 'Updating player position on server', this.localPlayer.position);
         
         try {
             const token = localStorage.getItem("token");
@@ -308,7 +300,7 @@ class GameService {
 
             const { latitude, longitude } = this.localPlayer.position;
             
-            this.debug('info', 'updatePlayerPosition', `Sending position update for player ${this.localPlayer.id}`, { latitude, longitude });
+            //this.debug('info', 'updatePlayerPosition', `Sending position update for player ${this.localPlayer.id}`, { latitude, longitude });
             
             const response = await fetch(`/game/resource/${this.localPlayer.id}/position`, {
                 method: 'PUT',
@@ -326,87 +318,63 @@ class GameService {
                 throw new Error(`Failed to update position: ${response.status} ${response.statusText}`);
             }
             
-            this.debug('info', 'updatePlayerPosition', 'Position update successful');
+            //this.debug('info', 'updatePlayerPosition', 'Position update successful');
         } catch (error) {
             this.debug('error', 'updatePlayerPosition', "Error updating player position:", error);
         }
     }
 
-    calculateDistance(pos1: Position, pos2: Position): number {
-        if (!pos1 || !pos2 ||
-            typeof pos1.latitude !== 'number' || typeof pos1.longitude !== 'number' ||
-            typeof pos2.latitude !== 'number' || typeof pos2.longitude !== 'number') {
-          throw new Error('Positions invalides pour calcul de distance')
-        }
-        const R = 6371000;
-        const phi1 = pos1.latitude * (Math.PI / 180);
-        const phi2 = pos2.latitude * (Math.PI / 180);
-        const deltaPhi = (pos2.latitude - pos1.latitude) * (Math.PI / 180);
-        const deltaLambda = (pos2.longitude - pos1.longitude) * (Math.PI / 180);
-
-        const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-            Math.cos(phi1) * Math.cos(phi2) *
-            Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        
-        const distance = R * c;
-        
-        // Only log this if it's close to a threshold of interest to avoid console spam
-        if (distance <= 20) {
-            this.debug('info', 'calculateDistance', 'Distance calculation', {
-                from: pos1,
-                to: pos2,
-                distance: distance
-            });
-        }
-        
-        return distance;
-    }
-
-    checkVitrineProximity() {
-        this.debug('info', 'checkVitrineProximity', 'Checking proximity to vitrines');
+    async checkVitrineProximity() {
+        //this.debug('info', 'checkVitrineProximity', 'Checking proximity to vitrines');
         try {
-            for (const vitrine of this.vitrines) {
-                if (vitrine.status === 'open') {
-                    const distance = this.calculateDistance(
-                        this.localPlayer.position,
-                        vitrine.position
-                    );
-    
-                    if (distance <= 5) {
-                        this.debug('info', 'checkVitrineProximity', `Player in range of vitrine ${vitrine.id}`, {
-                            distance,
-                            vitrine,
-                            playerPos: this.localPlayer.position
-                        });
-                        return vitrine.id;
-                    }
-                }
+            const token = localStorage.getItem("token");
+            if (!token) {
+                this.debug('warn', 'checkVitrineProximity', 'No token available, skipping proximity check');
+                return;
             }
-        }
-        catch (error) {
+
+            const response = await fetch(`/game/isNearby?targetRole=vitrine`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                // const errorText = await response.text();
+                // this.debug('error', 'checkVitrineProximity', `Failed to find element: ${response.status} ${response.statusText}`, errorText);
+                //throw new Error(`Failed to find element: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            //this.debug('info', 'checkVitrineProximity', 'Proximity check successful', data);
+            return data;
+        } catch (error) {
             this.debug('error', 'checkVitrineProximity', "Error checking vitrine proximity:", error);
         }
-        
     }
 
+
     async interactWithVitrine(vitrineId: string) {
-        this.debug('info', 'interactWithVitrine', `Attempting to interact with vitrine ${vitrineId}`);
+        //this.debug('info', 'interactWithVitrine', `Attempting to interact with vitrine ${vitrineId}`);
         
         try {
             const token = localStorage.getItem("token");
             if (!token) {
                 this.debug('warn', 'interactWithVitrine', 'No token available, skipping vitrine interaction');
                 return;
-            }
+            }            
 
-            this.debug('info', 'interactWithVitrine', 'Making API request to /game/treat-vitrine');
+            //this.debug('info', 'interactWithVitrine', 'Making API request to /game/treat-vitrine');
             const response = await fetch(`/game/treat-vitrine`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Origin': window.location.origin,
-                }
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ vitrineId })
             });
 
             if (!response.ok) {
@@ -416,35 +384,7 @@ class GameService {
             }
 
             const result = await response.json();
-            this.debug('info', 'interactWithVitrine', 'Vitrine interaction successful', result);
-            
-            const vitrine = this.vitrines.find(v => v.id === vitrineId);
-            if (vitrine) {
-                const oldStatus = vitrine.status;
-                vitrine.status = this.localPlayer.role === 'voleur' ? 'looted' : 'closed';
-                vitrine.closedBy = this.localPlayer.id;
-                vitrine.ttl = 0;
-                
-                this.debug('info', 'interactWithVitrine', `Updated vitrine status`, {
-                    vitrineId, 
-                    oldStatus, 
-                    newStatus: vitrine.status,
-                    playerRole: this.localPlayer.role
-                });
-            } else {
-                this.debug('warn', 'interactWithVitrine', `Vitrine ${vitrineId} not found in local data after interaction`);
-            }
-
-            if (result.score) {
-                const oldScore = this.localPlayer.score || 0;
-                this.localPlayer.score = (this.localPlayer.score || 0) + result.score;
-                
-                this.debug('info', 'interactWithVitrine', `Updated player score`, {
-                    oldScore,
-                    scoreGained: result.score,
-                    newScore: this.localPlayer.score
-                });
-            }
+            //this.debug('info', 'interactWithVitrine', 'Vitrine interaction successful', result);
         } catch (error) {
             this.debug('error', 'interactWithVitrine', `Error interacting with vitrine ${vitrineId}:`, error);
         }

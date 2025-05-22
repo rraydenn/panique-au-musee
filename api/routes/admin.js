@@ -67,7 +67,7 @@ router.post('/player-role', (req, res) => {
 	const result = DAO.addResource({
 		id: username,
 		role,
-		position: { latitude: 0, longitude: 0 },
+		position: { latitude: 45.78207, longitude: 4.86559 },
 		showcases: 0,
 		...(role === 'POLICIER' && { terminated: 0 }) // Ajoute terminated uniquement si policier
 	});

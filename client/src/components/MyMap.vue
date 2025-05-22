@@ -1,19 +1,20 @@
 <template>
   <section>
-    <h2>Carte</h2>
-    <p class="content">
+    <!-- <p class="content">
       <strong>TODO :</strong> mettre à jour les positions des différents objets sur la carte.
-    </p>
-    <div id="map" class="map" ref="map"></div>
+    </p> -->
+    <div id="map-container" style="position: relative;">
+      <div id="map" class="map" ref="map"></div>
 
-    <div v-if="nearbyVitrine" class="vitrine-overlay">
-      <h3>Vitrine Trouvée!</h3>
-      <p>Vous êtes à proximité d'une vitrine.</p>
-      <p v-if="userRole === 'voleur'">Voler cette vitrine?</p>
-      <p v-else>Sécuriser cette vitrine?</p>
-      <button @click="interactWithVitrine">
-        {{  userRole === 'voleur' ? 'Voler' : 'Sécuriser' }}
-      </button>
+      <div v-if="nearbyVitrine" class="vitrine-overlay">
+        <h3>Vitrine Trouvée!</h3>
+        <p>Vous êtes à proximité d'une vitrine.</p>
+        <p v-if="userRole === 'voleur'">Voler cette vitrine?</p>
+        <p v-else>Sécuriser cette vitrine?</p>
+        <button @click="interactWithVitrine">
+          {{  userRole === 'voleur' ? 'Voler' : 'Sécuriser' }}
+        </button>
+      </div>
     </div>
 
     <div class="game-stats">
@@ -27,13 +28,13 @@
 <script lang="ts">
 import 'leaflet/dist/leaflet.css'
 import { Map as LeafletMap, Marker, Polygon, Icon, DivIcon, LatLng, LatLngBounds } from 'leaflet'
-//import { LMap, LTileLayer } from "@vue-leaflet/vue-leaflet";
 import { defineComponent, onMounted, onBeforeUnmount, ref, computed } from 'vue'
 import gameService from '@/services/game'
 
 let mymap: LeafletMap | null = null
 let markers: Record<string, Marker> = {}
 let zrrPolygon: Polygon | null = null
+const activeVitrinesCount = ref<number | null>(null)
 
 export default defineComponent({
   name: 'MyMap',
@@ -47,9 +48,9 @@ export default defineComponent({
     const mapElement = ref<HTMLElement | null>(null)
     const nearbyVitrine = ref<string | null>(null)
     
-    const activeVitrinesCount = computed(() => {
-      return gameService.vitrines.filter(v => v.status === 'open').length
-    })
+    const updateActiveVitrinesCount = () => {
+      activeVitrinesCount.value = gameService.vitrines.length || 0
+    }
     
     const updateMap = () => {
       if (!mymap) return
@@ -78,7 +79,14 @@ export default defineComponent({
       
       const localPlayerIcon = new DivIcon({
         className: 'player-marker local-player',
-        html: `<div class="marker-content"><span>${gameService.localPlayer.username}</span></div>`,
+        html: `
+        <div class="marker-content avatar-wrapper">
+          ${
+            localStorage.getItem('userImage')
+              ? `<img src="${localStorage.getItem('userImage')}" alt="${gameService.localPlayer.username}" class="marker-avatar" />`
+              : `<span>${gameService.localPlayer.username}</span>`
+          }
+        </div>`,
         iconSize: [30, 30],
         iconAnchor: [15, 15]
       })
@@ -183,8 +191,9 @@ export default defineComponent({
       }
     }
     
-    const checkVitrineProximity = () => {
-      nearbyVitrine.value = gameService.checkVitrineProximity() ?? null
+    const checkVitrineProximity = async () => {
+      const result = await gameService.checkVitrineProximity()
+      nearbyVitrine.value = result?.nearby?.[0]?.id ?? null
     }
     
     onMounted(async () => {
@@ -202,6 +211,8 @@ export default defineComponent({
       const updateInterval = setInterval(() => {
         updateMap()
         checkVitrineProximity()
+        updateActiveVitrinesCount()
+        gameService.fetchResources()
       }, 1000)
       
       // Cleanup on unmount
@@ -230,7 +241,7 @@ export default defineComponent({
       const L = await import('leaflet')
       mymap = L.map('map', {
         center: [45.78200, 4.86550], // Lyon coordinates
-        zoom: 19
+        zoom: 18
       })
       
       L.tileLayer(
@@ -278,7 +289,7 @@ export default defineComponent({
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: 10;
   text-align: center;
   color: #2c3e50;
   transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
@@ -337,4 +348,21 @@ export default defineComponent({
   padding: 2px 5px;
   font-size: 12px;
 }
+
+:global(.avatar-wrapper) {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+:global(.marker-avatar) {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 </style>

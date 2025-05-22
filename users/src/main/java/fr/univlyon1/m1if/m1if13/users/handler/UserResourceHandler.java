@@ -56,7 +56,7 @@ public class UserResourceHandler {
         }
     }
 
-    public ServerResponse updateUser(ServerRequest request) throws ServletException, IOException {
+    public ServerResponse updateUser(ServerRequest request) throws ServletException, IOException, NameNotFoundException {
         String userId = request.pathVariable("userId");
         String origin = request.headers().firstHeader("Origin");
         User user = request.body(User.class);

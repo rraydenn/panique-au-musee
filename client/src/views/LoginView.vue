@@ -21,7 +21,6 @@ export default {
   setup() {
     const loginMessage = ref('Please login to continue')
     const handleLoginSuccess = (token: string) => {
-      console.log('Login successful', token)
     }
 
     const handleLoginError = (error: string) => {

@@ -30,7 +30,6 @@ export default {
       }
 
       try {
-        console.log('Envoi de la requête de login...')
         const response = await fetch('/api/login', {
           method: 'POST',
           headers: {
@@ -42,14 +41,12 @@ export default {
             password: passwordValue.value,
           }),
         })
-        console.log('Statut de la réponse (login):', response.status)
 
         if (response.ok) {
           const authHeader = response.headers.get('authorization')
           if(authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.substring(7)
             localStorage.setItem('token', token)
-            console.log('Token:', token)
             localStorage.setItem('login', loginValue.value)
             emit('login-success', token)
           }
@@ -67,12 +64,10 @@ export default {
           }
         });
 
-        console.log('Statut de la réponse (get):', getResponse.status)
         if (getResponse.ok) {
           const userData = await getResponse.json()
-          console.log('Données utilisateur:', userData)
-          console.log('Rôle utilisateur:', userData.species)
           localStorage.setItem('userRole', userData.species || 'unknown')
+          localStorage.setItem('userImage', userData.image || '')
         } else {
           console.error('Erreur lors de la récupération des données utilisateur')
         }

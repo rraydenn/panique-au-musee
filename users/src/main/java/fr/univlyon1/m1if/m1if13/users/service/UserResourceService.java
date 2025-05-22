@@ -46,7 +46,17 @@ public class UserResourceService {
         return UserResponseDto.of(userDao.findOne(login));
     }
 
-    public void updateUser(String login, User user, String origin, HttpServletRequest request) {
+    public void updateUser(String login, User user, String origin, HttpServletRequest request) throws NameNotFoundException {
+        //teste si des champs de user sont vide et si oui on les remplace par ceux de l'utilisateur
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            user.setPassword(userDao.findOne(login).getPassword());
+        }
+        if (user.getSpecies() == null) {
+            user.setSpecies(userDao.findOne(login).getSpecies());
+        }
+        if (user.getImage() == null || user.getImage().isEmpty()) {
+            user.setImage(userDao.findOne(login).getImage());
+        }
         userDao.update(login, user);
         request.setAttribute("generateToken", true);
         request.setAttribute("userLogin", user.getLogin());

@@ -22,10 +22,27 @@ router.get("/resources", (req, res) => {
 	return res.json(resources);
 });
 
+// check if the user is nearby a target role
+router.get("/isNearby", (req, res) => {
+	const userId = req.user.sub;
+	const { targetRole } = req.query;
+
+	if (!targetRole) {
+		return res.status(400).json({ error: "Le rôle cible est requis" });
+	}
+
+	const result = DAO.isNearby(userId, targetRole);
+	return result.error ? res.status(400).json(result) : res.json(result);
+});
+
 // 3. Traiter une vitrine
 router.post("/treat-vitrine", (req, res) => {
 	const userId = req.user.sub;
-	const result = DAO.treatVitrine(userId);
+	const { vitrineId } = req.body;
+	if (!vitrineId) {
+		return res.status(400).json({ error: "L'ID de la vitrine est requis" });
+	}
+	const result = DAO.treatVitrine(userId, vitrineId); // TODO: Passer l'ID de la vitrine
 	return result.error ? res.status(400).json(result) : res.json(result);
 });
 

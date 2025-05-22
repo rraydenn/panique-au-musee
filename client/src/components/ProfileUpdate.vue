@@ -62,7 +62,7 @@ export default {
                     if(authHeader && authHeader.startsWith('Bearer ')) {
                         const token = authHeader.substring(7)
                         localStorage.setItem('token', token)
-                        console.log('Token:', token)
+                        localStorage.setItem('userImage', imageUrl.value || '')
                     }
                 } else {
                     message.value = 'Failed to update profile.'

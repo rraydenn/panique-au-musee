@@ -38,4 +38,27 @@ export default defineConfig({
       }
     }
   }
+  // server: {
+  //   proxy: {
+  //     '/api': {
+  //       target: 'http://localhost:8080', // Adresse de Spring Boot
+  //       changeOrigin: true,
+  //       headers: {
+  //         Origin: 'http://localhost' // Explicitly set the Origin to match target
+  //       },
+  //       secure: false,
+  //       rewrite: (path) => path.replace(/^\/api/, '')
+  //     },
+  //     '/game': {
+  //       //TODO : ajouter le serveur pour request les données de jeu (ZRR par exemple)
+  //       target: 'http://localhost:3376', // Adresse de Express
+  //       changeOrigin: true,
+  //       headers: {
+  //         Origin: 'http://localhost' // Explicitly set the Origin to match target
+  //       },
+  //       secure: false,
+  //       rewrite: (path) => path.replace(/^\/game/, '/game')
+  //     }
+  //   }
+  // }
 })

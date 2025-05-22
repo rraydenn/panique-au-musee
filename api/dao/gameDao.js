@@ -58,39 +58,61 @@ class DAO {
 		});
 	}
 
+	// Récupérer une ressource par son ID si elle est géolocalisée à moins de 5m
+	isNearby(userId, targetRole, maxDistanceMeters = 5) {		
+		const user = this.resources.find(r => r.id === userId);
+		if (!user) {
+			return { error: "Ressource de départ introuvable ou non géolocalisée" };
+		}
+
+		const nearby = this.resources.filter(r =>
+			r.id !== userId &&
+			r.role === targetRole &&
+			r.position &&
+			(r.ttl === undefined || r.ttl > 0) &&
+			haversine(user.position, r.position) <= maxDistanceMeters
+		);
+		
+		if (nearby.length > 0) {
+			return { success: true, nearby };
+		} else {
+			return { error: "Aucune ressource trouvée à proximité" };
+		}
+	}
+
 	// Traiter une vitrine
-	treatVitrine(userId) {
+	treatVitrine(userId, vitrineId) {  //TODO: Passer l'ID de la vitrine
 		const user = this.resources.find(r => r.id === userId && r.role !== 'vitrine');
+		const vitrine = this.resources.find(r => r.id === vitrineId && r.role === 'vitrine');
+
 		if (!user || !user.position) {
 			return { error: "Utilisateur introuvable ou non géolocalisé" };
 		}
+
+		if (!vitrine || !vitrine.position || vitrine.ttl <= 0) {
+			return { error: "Vitrine invalide ou déjà traitée" };
+		}
 	
-		// Cherche une vitrine proche
-		const nearbyVitrine = this.resources.find(r =>
-			r.role === 'vitrine' &&
-			r.ttl > 0 &&
-			r.position &&
-			haversine(user.position, r.position) < 5 // moins de 5m
-		);
-	
-		if (!nearbyVitrine) {
-			return { error: "Aucune vitrine à proximité à traiter" };
+		// Vérifier la proximité
+		const distance = haversine(user.position, vitrine.position);
+		if (distance > 5) {
+			return { error: "Vitrine trop éloignée pour être traitée" };
 		}
 	
 		// Marquer la vitrine comme traitée
-		nearbyVitrine.ttl = 0;
+		vitrine.ttl = 0;
 	
 		// Incrémenter compteur du joueur
 		user.showcases = (user.showcases || 0) + 1;
 	
-		return { success: true, vitrine: nearbyVitrine.id, treatedCount: user.showcases };
+		return { success: true, vitrine: vitrine.id, treatedCount: user.showcases };
 	}
 
 	// Capturer un voleur
-	captureVoleur(userId) {
+	captureVoleur(userId, voleurId) {
 		const policeman = this.resources.find(r => r.id === userId && r.role === 'POLICIER');
-		const thief = this.resources.find(r => r.role === 'VOLEUR' && r.position);
-        
+		const thief = this.resources.find(r => r.id === voleurId && r.role === 'VOLEUR');
+
 		if (!policeman || !policeman.position) {
 			return { error: "Policier introuvable ou non géolocalisé" };
 		}
