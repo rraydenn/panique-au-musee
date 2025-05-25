@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulation de positions avec Leaflet</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 90vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h2>Simulation de positions avec Leaflet (incluant votre position)</h2>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const simulatedPositions = [
+      { name: "Place Bellecour", lat: 45.757814, lng: 4.832011 },
+      { name: "Gare Part-Dieu", lat: 45.760998, lng: 4.861996 },
+      { name: "Parc de la Tête d’Or", lat: 45.779662, lng: 4.855972 },
+      { name: "Croix-Rousse", lat: 45.777221, lng: 4.827752 },
+      { name: "Confluence", lat: 45.741420, lng: 4.815841 },
+    ];
+
+    let allPositions = [...simulatedPositions]; 
+    let map = L.map('map').setView([45.757814, 4.832011], 13);
+    let marker;
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const userPosition = {
+            name: "Votre position actuelle",
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+
+          const middleIndex = Math.floor(simulatedPositions.length / 2);
+          allPositions.splice(middleIndex, 0, userPosition);
+        },
+        error => {
+          console.warn("Impossible de récupérer la position réelle :", error.message);
+        }
+      );
+    }
+
+    let index = 0;
+    function switchPosition() {
+      const pos = allPositions[index % allPositions.length];
+      if (marker) map.removeLayer(marker);
+
+      map.setView([pos.lat, pos.lng], 14);
+      marker = L.marker([pos.lat, pos.lng]).addTo(map)
+        .bindPopup("Position simulée : " + pos.name)
+        .openPopup();
+
+      index++;
+    }
+
+    setTimeout(() => {
+      switchPosition(); 
+      setInterval(switchPosition, 5000); 
+    }, 1000);
+  </script>
+</body>
