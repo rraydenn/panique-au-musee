@@ -62,14 +62,27 @@ export default {
                     if(authHeader && authHeader.startsWith('Bearer ')) {
                         const token = authHeader.substring(7)
                         localStorage.setItem('token', token)
-                        localStorage.setItem('userImage', imageUrl.value || '')
+                    }
+                    try {
+                        const response = await fetch(`/game/resource/${login}/image`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({image:imageUrl.value})
+                        });
+                    } catch (error) {
+                        console.error('Error updating profile on express:', error)
+                        message.value = 'An error occurred while updating the profile.'
+                        messageType.value = 'error'
                     }
                 } else {
                     message.value = 'Failed to update profile.'
                     messageType.value = 'error'
                 }
             } catch (error) {
-                console.error('Error updating profile:', error)
+                console.error('Error updating profile on spring:', error)
                 message.value = 'An error occurred while updating the profile.'
                 messageType.value = 'error'
             }

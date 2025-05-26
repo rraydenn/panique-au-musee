@@ -1,3 +1,4 @@
+import { LatLng } from "leaflet";
 import { ref, reactive } from "vue";
 
 export interface Position {
@@ -20,6 +21,7 @@ export interface Vitrine extends Resource {
 export interface Player extends Resource {
     username: string;
     score?: number;
+    image?: string;
 }
 
 export interface ZRR {
@@ -35,6 +37,7 @@ class GameService {
         role: '',
         username: '',
         position: { latitude: 45.78200, longitude: 4.86550 },
+        image: '',
         score: 0
     })
 
@@ -243,6 +246,7 @@ class GameService {
                     role: p.role,
                     username: p.username || p.id,
                     position: p.position,
+                    image: p.image || '',
                     score: p.showcases || 0
                 }));
             
@@ -255,6 +259,7 @@ class GameService {
                 this.localPlayer.role = localPlayerData.role;
                 this.localPlayer.username = localPlayerData.username || localPlayerData.id;
                 this.localPlayer.position = localPlayerData.position;
+                this.localPlayer.image = localPlayerData.image || '';
                 this.localPlayer.score = localPlayerData.showcases || 0;
             }
 
@@ -277,14 +282,22 @@ class GameService {
         }
     }
 
+    decreaseTTL() {
+        this.vitrines.forEach(v => {
+            if (v.ttl > 0) {
+                v.ttl -= 1
+            }
+        })
+    }
+
     private startPositionUpdates() {
         //this.debug('info', 'startPositionUpdates', 'Starting position update interval (5000ms)');
         
         this.positionUpdateInterval = window.setInterval(() => {            
-            this.localPlayer.position.latitude += (Math.random() - 0.5) * 0.0001;
-            this.localPlayer.position.longitude += (Math.random() - 0.5) * 0.0001;
+            // this.localPlayer.position.latitude += (Math.random() - 0.5) * 0.0001;
+            // this.localPlayer.position.longitude += (Math.random() - 0.5) * 0.0001;
 
-            this.updatePlayerPosition();
+            // this.updatePlayerPosition();
         }, 5000);
     }
 
@@ -324,35 +337,19 @@ class GameService {
         }
     }
 
-    async checkVitrineProximity() {
-        //this.debug('info', 'checkVitrineProximity', 'Checking proximity to vitrines');
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                this.debug('warn', 'checkVitrineProximity', 'No token available, skipping proximity check');
-                return;
-            }
+    checkVitrineProximity() {
+        const userPos = new LatLng(
+            this.localPlayer.position.latitude,
+            this.localPlayer.position.longitude
+        )
 
-            const response = await fetch(`/game/isNearby?targetRole=vitrine`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                }
-            });
-            
-            if (!response.ok) {
-                // const errorText = await response.text();
-                // this.debug('error', 'checkVitrineProximity', `Failed to find element: ${response.status} ${response.statusText}`, errorText);
-                //throw new Error(`Failed to find element: ${response.status} ${response.statusText}`);
-            }
+        const nearby = this.vitrines.find(vitrine => {
+            const pos = new LatLng(vitrine.position.latitude, vitrine.position.longitude)
+            const distance = userPos.distanceTo(pos)
+            return distance < 5
+        })
 
-            const data = await response.json();
-            //this.debug('info', 'checkVitrineProximity', 'Proximity check successful', data);
-            return data;
-        } catch (error) {
-            this.debug('error', 'checkVitrineProximity', "Error checking vitrine proximity:", error);
-        }
+        return nearby ? nearby.id : null
     }
 
 

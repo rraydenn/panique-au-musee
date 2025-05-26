@@ -42,5 +42,12 @@ revoir jasmine mais tout est tester au niveau de la page de log et admin
 
 ## TP5
 
-En cours (16/04)
-début du TP jusqu'à 2.2
+Fini (màj 22/05)
+
+## TP6
+
+Fini (màj 26/05)
+
+## TP7
+
+En cours (25/05)
