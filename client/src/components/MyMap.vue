@@ -15,6 +15,9 @@
           {{  userRole === 'voleur' ? 'Voler' : 'Sécuriser' }}
         </button>
       </div>
+      <div v-if="actionMessage" class="vitrine-overlay">
+        <p>{{ actionMessage }}</p>
+      </div>
     </div>
 
     <div class="game-stats">
@@ -27,8 +30,8 @@
 
 <script lang="ts">
 import 'leaflet/dist/leaflet.css'
-import { Map as LeafletMap, Marker, Polygon, Icon, DivIcon, LatLng, LatLngBounds } from 'leaflet'
-import { defineComponent, onMounted, onBeforeUnmount, ref, computed } from 'vue'
+import { Map as LeafletMap, Marker, Polygon, Icon, DivIcon, LatLng } from 'leaflet'
+import { defineComponent, onMounted, onBeforeUnmount, ref } from 'vue'
 import gameService from '@/services/game'
 
 let mymap: LeafletMap | null = null
@@ -47,6 +50,7 @@ export default defineComponent({
   setup(props) {
     const mapElement = ref<HTMLElement | null>(null)
     const nearbyVitrine = ref<string | null>(null)
+    const actionMessage = ref<string | null>(null)
     
     const updateActiveVitrinesCount = () => {
       activeVitrinesCount.value = gameService.vitrines.length || 0
@@ -82,8 +86,8 @@ export default defineComponent({
         html: `
         <div class="marker-content avatar-wrapper">
           ${
-            localStorage.getItem('userImage')
-              ? `<img src="${localStorage.getItem('userImage')}" alt="${gameService.localPlayer.username}" class="marker-avatar" />`
+            gameService.localPlayer.image
+              ? `<img src="${gameService.localPlayer.image}" alt="${gameService.localPlayer.username}" class="marker-avatar" />`
               : `<span>${gameService.localPlayer.username}</span>`
           }
         </div>`,
@@ -103,7 +107,15 @@ export default defineComponent({
           const pos = new LatLng(player.position.latitude, player.position.longitude)
           const icon = new DivIcon({
             className: `player-marker player-${player.role}`,
-            html: `<div class="marker-content"><span>${player.username}</span></div>`,
+            // html: `<div class="marker-content"><span>${player.username}</span></div>`,
+            html: `
+            <div class="marker-content avatar-wrapper">
+              ${
+                player.image
+                  ? `<img src="${player.image}" alt="${player.username}" class="marker-avatar" />`
+                  : `<span>${player.username}</span>`
+              }
+            </div>`,
             iconSize: [30, 30],
             iconAnchor: [15, 15]
           })
@@ -120,6 +132,12 @@ export default defineComponent({
       Object.values(markers)
         .filter(m => m.getElement()?.classList.contains('vitrine-marker'))
         .forEach(m => mymap?.removeLayer(m))
+
+      // On construit la position du joueur
+      const userPos = new LatLng(
+        gameService.localPlayer.position.latitude,
+        gameService.localPlayer.position.longitude
+      )
       
       // Add vitrine markers
       gameService.vitrines.forEach(vitrine => {
@@ -131,7 +149,12 @@ export default defineComponent({
         
         if (vitrine.status === 'open') {
           className += ' vitrine-open'
+          const distance = userPos.distanceTo(pos)
           html = `<div class="marker-content"><span>TTL: ${vitrine.ttl}s</span></div>`
+          html = `<div class="marker-content">
+            <span>${vitrine.ttl}s</span><br>
+            <span><b>${Math.round(distance)}m</b></span>
+          </div>`
         } else if (vitrine.status === 'looted') {
           className += ' vitrine-looted'
           html = `<div class="marker-content"><span>Looted</span></div>`
@@ -147,9 +170,7 @@ export default defineComponent({
           iconAnchor: [15, 15]
         })
         
-        const marker = new Marker(pos, { icon })
-          .addTo(mymap!)
-        
+        const marker = new Marker(pos, { icon }).addTo(mymap!)
         markers[vitrine.id] = marker
       })
     }
@@ -188,12 +209,18 @@ export default defineComponent({
         await gameService.interactWithVitrine(nearbyVitrine.value)
         nearbyVitrine.value = null
         updateMap()
+
+        // Message d'action
+        actionMessage.value = `Bravo ! Score : ${(gameService.localPlayer?.score ?? 0) + 1}`
+        setTimeout(() => {
+          actionMessage.value = null
+        }, 2000)
       }
     }
     
-    const checkVitrineProximity = async () => {
-      const result = await gameService.checkVitrineProximity()
-      nearbyVitrine.value = result?.nearby?.[0]?.id ?? null
+    const checkVitrineProximity = () => {
+      const result = gameService.checkVitrineProximity()
+      nearbyVitrine.value = typeof result === 'string' ? result : null
     }
     
     onMounted(async () => {
@@ -206,20 +233,28 @@ export default defineComponent({
       
       // Update map with initial game data
       updateMap()
+      await gameService.fetchResources()
+      updateActiveVitrinesCount()
+
+      // Mise à jour locale du TTL toutes les 1s
+      const ttlInterval = setInterval(() => {
+        gameService.decreaseTTL()
+        updateMap()
+      }, 1000)
       
       // Set interval to update map regularly
-      const updateInterval = setInterval(() => {
+      const updateInterval = setInterval(async () => {
+        await gameService.fetchResources()
         updateMap()
-        checkVitrineProximity()
         updateActiveVitrinesCount()
-        gameService.fetchResources()
-      }, 1000)
+        checkVitrineProximity()
+      }, 5000)
       
       // Cleanup on unmount
       onBeforeUnmount(() => {
+        clearInterval(ttlInterval)
         clearInterval(updateInterval)
         gameService.cleanup()
-        
         if (mymap) {
           mymap.remove()
           mymap = null
@@ -263,6 +298,7 @@ export default defineComponent({
     return {
       mapElement,
       nearbyVitrine,
+      actionMessage,
       activeVitrinesCount,
       gameService,
       interactWithVitrine
@@ -347,6 +383,7 @@ export default defineComponent({
 :global(.marker-content) {
   padding: 2px 5px;
   font-size: 12px;
+  color: black;
 }
 
 :global(.avatar-wrapper) {

@@ -54,7 +54,7 @@ router.post('/ttl', (req, res) => {
 
 // 3. Set player role A REFAIRE !
 router.post('/player-role', (req, res) => {
-	const { username, role } = req.body;
+	const { username, role, image } = req.body;
   
 	if (!username || typeof username !== 'string') {
 		return res.status(400).json({ error: "Username is required" });
@@ -69,9 +69,10 @@ router.post('/player-role', (req, res) => {
 		role,
 		position: { latitude: 45.78207, longitude: 4.86559 },
 		showcases: 0,
+		image,
 		...(role === 'POLICIER' && { terminated: 0 }) // Ajoute terminated uniquement si policier
 	});
-	return result.error ? res.status(400).json(result) : res.status(200).json({ username, role });	
+	return result.error ? res.status(400).json(result) : res.status(200).json({ username, role, image });	
 });
 
 // 4. Trigger vitrine appearance

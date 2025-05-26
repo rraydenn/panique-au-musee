@@ -42,7 +42,7 @@ router.post("/treat-vitrine", (req, res) => {
 	if (!vitrineId) {
 		return res.status(400).json({ error: "L'ID de la vitrine est requis" });
 	}
-	const result = DAO.treatVitrine(userId, vitrineId); // TODO: Passer l'ID de la vitrine
+	const result = DAO.treatVitrine(userId, vitrineId);
 	return result.error ? res.status(400).json(result) : res.json(result);
 });
 
@@ -59,5 +59,19 @@ router.get("/zrr", (req, res) => {
 	return result.error ? res.status(404).json(result) : res.json(result);
 });
 
+// 6. Changer l'image d'un joueur
+router.put("/resource/:id/image", (req, res) => {
+	const { id } = req.params;
+	const { image } = req.body;
+
+	if (!image || typeof image !== 'string') {
+		return res.status(400).json({ error: "Image is required and must be a string" });
+	}
+
+	const result = DAO.updatePlayerImage(id, image);
+	return result.error
+		? res.status(404).json(result)
+		: res.status(200).json(result);
+});
 
 export default router;  // Export du routeur pour l'importer dans server.js

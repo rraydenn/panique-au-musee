@@ -2,9 +2,23 @@ import haversine from 'haversine-distance';
 
 class DAO {
 	constructor() {
-		this.resources = [  // Pour stocker les ressources (joueurs, vitrines)
-		];
-		this.zrr = null;  // Limites de la ZRR
+		this.resources = [];  // Pour stocker les ressources (joueurs, vitrines)
+		this.zrr = null;      // Limites de la ZRR
+		this.defaultTTL = 60; // Durée par défaut du TTL en secondes
+
+		// Démarrer le timer qui décrémente le TTL toutes les secondes
+		setInterval(() => {
+			this.decrementTTL();
+		}, 1000);
+	}
+
+	// Décrémenter le TTL de toutes les vitrines actives
+	decrementTTL() {
+		this.resources.forEach(resource => {
+			if (resource.role === 'vitrine' && resource.ttl > 0) {
+				resource.ttl = Math.max(resource.ttl - 1, 0);
+			}
+		});
 	}
 
 	// Définir les limites de la ZRR avec deux points
@@ -41,6 +55,17 @@ class DAO {
 		resource.position = { latitude: newLatitude, longitude: newLongitude }; // Nouvelle position
 		return { success: true, resource };
 	}
+
+	// Modifier l'image d'un joueur
+	updatePlayerImage(id, image) {
+		const resource = this.resources.find(r => r.id === id);
+		if (!resource) {
+			return { error: 'Joueur non trouvée' };
+		}
+		resource.image = image;
+		return { success: true, resource };
+	}
+
 
 	// Récupérer la liste des ressources pour un joueur
 	getResourcesForUser(userRole) {
