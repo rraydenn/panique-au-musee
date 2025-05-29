@@ -29,6 +29,24 @@
       <div v-if="actionMessage" class="vitrine-overlay">
         <p>{{ actionMessage }}</p>
       </div>
+
+      <div v-if="calibrationMode" class="calibration-overlay">
+        <h3>Mode Calibration</h3>
+        <p>Appuyez longuement sur votre position réelle pour calibrer.</p>
+        <div class="calibration-buttons">
+          <button @click="cancelCalibration">Annuler</button>
+          <button @click="resetCalibration">Réinitialiser</button>
+        </div>
+      </div>
+
+      <button
+        class="calibration-toggle"
+        @click="toggleCalibrationMode"
+        :class="{ active: calibrationMode }"
+      >
+        <span v-if="positionStore.isCalibrated" class="calibrated-indicator"></span>
+        <span>Calibrer GPS</span>
+      </button>
     </div>
 
     <div class="game-stats">
@@ -42,6 +60,7 @@
 <script lang="ts">
 import 'leaflet/dist/leaflet.css'
 import { Map as LeafletMap, Marker, Polygon, Icon, DivIcon, LatLng } from 'leaflet'
+import type { LeafletMouseEvent } from 'leaflet'
 import { defineComponent, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import gameService from '@/services/game'
 import { usePositionStore } from '@/stores/position'
@@ -64,6 +83,8 @@ export default defineComponent({
     const nearbyVitrine = ref<string | null>(null)
     const actionMessage = ref<string | null>(null)
     const positionStore = usePositionStore()
+    const calibrationMode = ref(false)
+    const longPressTimeout = ref<number | null>(null)
 
     const retryGeolocation = () => {
       positionStore.startTracking()
@@ -71,6 +92,74 @@ export default defineComponent({
     
     const updateActiveVitrinesCount = () => {
       activeVitrinesCount.value = gameService.vitrines.length || 0
+    }
+
+    const toggleCalibrationMode = () => {
+      calibrationMode.value = !calibrationMode.value
+      if (calibrationMode.value) {
+        actionMessage.value = "Mode calibration activé. Appuyez longuement sur votre position réelle."
+        setTimeout(() => {
+          actionMessage.value = null
+        }, 3000)
+      }
+    }
+
+    const cancelCalibration = () => {
+      calibrationMode.value = false
+    }
+
+    const resetCalibration = () => {
+      positionStore.resetCalibration()
+      calibrationMode.value = false
+      actionMessage.value = "Calibration réinitialisée."
+      setTimeout(() => {
+        actionMessage.value = null
+      }, 2000)
+    }
+
+    const handleLongPress = (event: LeafletMouseEvent) => {
+      if (!calibrationMode.value) return
+      
+      const referencePoint = {
+        latitude: event.latlng.lat,
+        longitude: event.latlng.lng
+      }
+
+      positionStore.calibrate(referencePoint)
+
+      actionMessage.value = "Position calibrée avec succès !"
+
+      calibrationMode.value = false
+
+      setTimeout(() => {
+        actionMessage.value = null
+      }, 2000)
+    }
+
+    const setupMapPressEvents = () => {
+      if (!mymap) return
+
+      mymap.on('mousedown', (event: LeafletMouseEvent) => {
+        if (!calibrationMode.value) return
+
+        longPressTimeout.value = window.setTimeout(() => {
+          handleLongPress(event)
+        }, 1000)
+      })
+
+      mymap.on('mouseup', () => {
+        if (longPressTimeout.value) {
+          clearTimeout(longPressTimeout.value)
+          longPressTimeout.value = null
+        }
+      })
+
+      mymap.on('mousemove', () => {
+        if (longPressTimeout.value) {
+          clearTimeout(longPressTimeout.value)
+          longPressTimeout.value = null
+        }
+      })
     }
     
     const updateMap = () => {
@@ -247,6 +336,8 @@ export default defineComponent({
         if (currentPosition) {
           // Initialize Leaflet map
           await initializeMap()
+
+          setupMapPressEvents()
           
           // Initialize game data with mock user ID
           const userId = localStorage.getItem('login') || 'user-123'
@@ -289,6 +380,10 @@ export default defineComponent({
         if (mymap) {
           mymap.remove()
           mymap = null
+        }
+        if (longPressTimeout.value) {
+          clearTimeout(longPressTimeout.value)
+          longPressTimeout.value = null
         }
       })
     })
@@ -334,7 +429,11 @@ export default defineComponent({
       gameService,
       positionStore,
       retryGeolocation,
-      interactWithVitrine
+      interactWithVitrine,
+      calibrationMode,
+      toggleCalibrationMode,
+      cancelCalibration,
+      resetCalibration
     }
   }
 })
@@ -449,6 +548,52 @@ export default defineComponent({
 
 .position-overlay.error {
   background-color: rgba(255, 220, 220, 0.9);
+}
+
+.calibration-overlay {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-align: center;
+}
+
+.calibration-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.calibration-toggle {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.calibration-toggle.active {
+  background-color: #e0f7fa;
+  border-color: #4fc3f7;
+}
+
+.calibrated-indicator {
+  color: green;
+  font-weight: bold;
 }
 
 .loading-spinner {

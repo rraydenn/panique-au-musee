@@ -7,22 +7,75 @@ export interface Position {
     accuracy?: number;
 }
 
+interface Vecteur {
+    deltaLat: number;
+    deltaLng: number;
+}
+
 export const usePositionStore = defineStore('position', () => {
     const position = ref <Position | null>(null);
+    const rawPosition = ref<Position | null>(null);
     const loading = ref(false);
     const error = ref<string | null>(null);
     const timestamp = ref<number | null>(null);
+    const vecteur = ref<Vecteur>({ deltaLat: 0, deltaLng: 0 });
 
     const watchId = ref<number | null>(null);
     const timeoutId = ref<number | null>(null);
 
     const hasPosition = computed(() => position.value !== null);
+    const isCalibrated = computed(() => vecteur.value.deltaLat !== 0 || vecteur.value.deltaLng !== 0);
+
+    function applyCalibration(rawPos: Position): Position {
+        return {
+            latitude: rawPos.latitude + vecteur.value.deltaLat,
+            longitude: rawPos.longitude + vecteur.value.deltaLng,
+            accuracy: rawPos.accuracy
+        };
+    }
+
+    function calibrate(referencePoint: Position) {
+        if (!rawPosition.value) return;
+
+        vecteur.value = {
+            deltaLat: referencePoint.latitude - rawPosition.value.latitude,
+            deltaLng: referencePoint.longitude - rawPosition.value.longitude
+        };
+
+        if (rawPosition.value) {
+            position.value = applyCalibration(rawPosition.value);
+        }
+
+        localStorage.setItem('calibration', JSON.stringify(vecteur.value));
+    }
+
+    function resetCalibration() {
+        vecteur.value = { deltaLat: 0, deltaLng: 0 };
+        localStorage.removeItem('calibration');
+
+        if (rawPosition.value) {
+            position.value = { ...rawPosition.value };
+        }
+    }
+
+    function loadCalibration() {
+        const savedCalibration = localStorage.getItem('calibration');
+        if (savedCalibration) {
+            try {
+                vecteur.value = JSON.parse(savedCalibration);
+            } catch (e) {
+                console.error('Erreur lors du chargement de la calibration:', e);
+            }
+        }
+    }
 
     function startTracking() {
         if(!navigator.geolocation) {
             error.value = 'La géolocalisation n\'est pas supportée par ce navigateur.';
             return;
         }
+
+        loadCalibration();
 
         loading.value = true;
 
@@ -39,11 +92,13 @@ export const usePositionStore = defineStore('position', () => {
 
         watchId.value = navigator.geolocation.watchPosition(
             (pos) => {
-                position.value = {
+                rawPosition.value = {
                     latitude: pos.coords.latitude,
                     longitude: pos.coords.longitude,
                     accuracy: pos.coords.accuracy
                 };
+
+                position.value = applyCalibration(rawPosition.value);
                 timestamp.value = pos.timestamp;
                 loading.value = false;
                 error.value = null;
@@ -90,11 +145,16 @@ export const usePositionStore = defineStore('position', () => {
 
     return {
         position,
+        rawPosition,
         loading,
         error,
         timestamp,
         hasPosition,
+        isCalibrated,
+        vecteur,
         startTracking,
-        stopTracking
+        stopTracking,
+        calibrate,
+        resetCalibration
     }
 })
