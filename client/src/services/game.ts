@@ -1,5 +1,6 @@
 import { LatLng } from "leaflet";
 import { ref, reactive } from "vue";
+import { usePositionStore } from "@/stores/position";
 
 export interface Position {
     latitude: number;
@@ -292,12 +293,17 @@ class GameService {
 
     private startPositionUpdates() {
         //this.debug('info', 'startPositionUpdates', 'Starting position update interval (5000ms)');
+        const positionStore = usePositionStore();
+
+        if (!positionStore.hasPosition && !positionStore.loading) {
+            positionStore.startTracking();
+        }
         
         this.positionUpdateInterval = window.setInterval(() => {            
             // this.localPlayer.position.latitude += (Math.random() - 0.5) * 0.0001;
             // this.localPlayer.position.longitude += (Math.random() - 0.5) * 0.0001;
 
-            // this.updatePlayerPosition();
+            this.updatePlayerPosition();
         }, 5000);
     }
 
@@ -305,6 +311,19 @@ class GameService {
         //this.debug('info', 'updatePlayerPosition', 'Updating player position on server', this.localPlayer.position);
         
         try {
+            const positionStore = usePositionStore();
+            const currentPosition = positionStore.position;
+
+            if (!currentPosition) {
+                this.debug('warn', 'updatePlayerPosition', 'No position data available');
+                return;
+            }
+
+            this.localPlayer.position = {
+                latitude: currentPosition.latitude,
+                longitude: currentPosition.longitude
+            }
+
             const token = localStorage.getItem("token");
             if (!token) {
                 this.debug('warn', 'updatePlayerPosition', 'No token available, skipping position update');

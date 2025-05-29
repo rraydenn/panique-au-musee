@@ -3,7 +3,18 @@
     <!-- <p class="content">
       <strong>TODO :</strong> mettre à jour les positions des différents objets sur la carte.
     </p> -->
-    <div id="map-container" style="position: relative;">
+    <div v-if="positionStore.loading" class="position-overlay">
+      <h3>Acquisition de votre position en cours...</h3>
+      <div class="loading-spinner"></div>
+    </div>
+
+    <div v-else-if="positionStore.error" class="position-overlay error">
+      <h3>Erreur de géolocalisation</h3>
+      <p>{{ positionStore.error }}</p>
+      <button @click="retryGeolocation">Réessayer</button>
+    </div>
+
+    <div v-else id="map-container" style="position: relative;">
       <div id="map" class="map" ref="map"></div>
 
       <div v-if="nearbyVitrine" class="vitrine-overlay">
@@ -31,8 +42,9 @@
 <script lang="ts">
 import 'leaflet/dist/leaflet.css'
 import { Map as LeafletMap, Marker, Polygon, Icon, DivIcon, LatLng } from 'leaflet'
-import { defineComponent, onMounted, onBeforeUnmount, ref } from 'vue'
+import { defineComponent, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import gameService from '@/services/game'
+import { usePositionStore } from '@/stores/position'
 
 let mymap: LeafletMap | null = null
 let markers: Record<string, Marker> = {}
@@ -51,6 +63,11 @@ export default defineComponent({
     const mapElement = ref<HTMLElement | null>(null)
     const nearbyVitrine = ref<string | null>(null)
     const actionMessage = ref<string | null>(null)
+    const positionStore = usePositionStore()
+
+    const retryGeolocation = () => {
+      positionStore.startTracking()
+    }
     
     const updateActiveVitrinesCount = () => {
       activeVitrinesCount.value = gameService.vitrines.length || 0
@@ -224,36 +241,50 @@ export default defineComponent({
     }
     
     onMounted(async () => {
-      // Initialize Leaflet map
-      await initializeMap()
-      
-      // Initialize game data with mock user ID
-      const userId = localStorage.getItem('login') || 'user-123'
-      await gameService.init(userId, props.userRole)
-      
-      // Update map with initial game data
-      updateMap()
-      await gameService.fetchResources()
-      updateActiveVitrinesCount()
+      positionStore.startTracking()
 
-      // Mise à jour locale du TTL toutes les 1s
-      const ttlInterval = setInterval(() => {
-        gameService.decreaseTTL()
-        updateMap()
-      }, 1000)
+      watch(() => positionStore.position, async (currentPosition) => {
+        if (currentPosition) {
+          // Initialize Leaflet map
+          await initializeMap()
+          
+          // Initialize game data with mock user ID
+          const userId = localStorage.getItem('login') || 'user-123'
+          
+          gameService.localPlayer.position = {
+            latitude: currentPosition.latitude,
+            longitude: currentPosition.longitude
+          }
+
+          await gameService.init(userId, props.userRole)
+          
+          // Update map with initial game data
+          updateMap()
+          await gameService.fetchResources()
+          updateActiveVitrinesCount()
+
+          // Mise à jour locale du TTL toutes les 1s
+          const ttlInterval = setInterval(() => {
+            gameService.decreaseTTL()
+            updateMap()
+          }, 1000)
+          
+          // Set interval to update map regularly
+          const updateInterval = setInterval(async () => {
+            await gameService.fetchResources()
+            updateMap()
+            updateActiveVitrinesCount()
+            checkVitrineProximity()
+          }, 5000)
+
+        }
+      }, { immediate: true })
+
       
-      // Set interval to update map regularly
-      const updateInterval = setInterval(async () => {
-        await gameService.fetchResources()
-        updateMap()
-        updateActiveVitrinesCount()
-        checkVitrineProximity()
-      }, 5000)
       
       // Cleanup on unmount
       onBeforeUnmount(() => {
-        clearInterval(ttlInterval)
-        clearInterval(updateInterval)
+        positionStore.stopTracking()
         gameService.cleanup()
         if (mymap) {
           mymap.remove()
@@ -301,6 +332,8 @@ export default defineComponent({
       actionMessage,
       activeVitrinesCount,
       gameService,
+      positionStore,
+      retryGeolocation,
       interactWithVitrine
     }
   }
@@ -400,6 +433,36 @@ export default defineComponent({
   height: 30px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.position-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+  text-align: center;
+}
+
+.position-overlay.error {
+  background-color: rgba(255, 220, 220, 0.9);
+}
+
+.loading-spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #09f;
+  animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 </style>
