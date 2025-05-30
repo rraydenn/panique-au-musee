@@ -405,6 +405,10 @@ class GameService {
             this.debug('error', 'interactWithVitrine', `Error interacting with vitrine ${vitrineId}:`, error);
         }
     }
+
+    async catchPlayer(playerId: string) {
+        //TODO: implémenter la logique de capture d'un joueur (dans le back aussi ?)
+    }
 }
 
 export default new GameService();

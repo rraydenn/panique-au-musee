@@ -47,6 +47,14 @@
         <span v-if="positionStore.isCalibrated" class="calibrated-indicator"></span>
         <span>Calibrer GPS</span>
       </button>
+
+      <CatchModal
+        v-if="catchModalVisible"
+        :show="catchModalVisible"
+        :caught-player="caughtPlayer"
+        :user-role="userRole"
+        @close="closeCatchModal"
+      />
     </div>
 
     <div class="game-stats">
@@ -64,6 +72,7 @@ import type { LeafletMouseEvent } from 'leaflet'
 import { defineComponent, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import gameService from '@/services/game'
 import { usePositionStore } from '@/stores/position'
+import CatchModal from '@/components/CatchModal.vue'
 
 let mymap: LeafletMap | null = null
 let markers: Record<string, Marker> = {}
@@ -72,6 +81,9 @@ const activeVitrinesCount = ref<number | null>(null)
 
 export default defineComponent({
   name: 'MyMap',
+  components: {
+    CatchModal
+  },
   props: {
     userRole: {
       type: String,
@@ -85,6 +97,69 @@ export default defineComponent({
     const positionStore = usePositionStore()
     const calibrationMode = ref(false)
     const longPressTimeout = ref<number | null>(null)
+    const catchModalVisible = ref(false)
+    const caughtPlayer = ref({
+      id: '',
+      username: '',
+      image: '',
+      role: ''
+    })
+
+    const showCatchModal = (player: any) => {
+      caughtPlayer.value = player
+      catchModalVisible.value = true
+    }
+
+    const closeCatchModal = () => {
+      catchModalVisible.value = false
+    }
+
+    const checkPlayerProximity = () => {
+      //fonction pour vérifier la proximité des joueurs
+      if (props.userRole !== 'policier') return;
+
+      const localPlayerPos = {
+        latitude: gameService.localPlayer.position.latitude,
+        longitude: gameService.localPlayer.position.longitude
+      }
+
+      const nearbyThief = gameService.players.find(player => {
+        if (player.role !== 'voleur') return false;
+
+        const distance = calculateDistance(localPlayerPos, player.position); //calculateDistance existe déjà quelque part ?
+
+        return distance <= 5;
+      });
+
+      if (nearbyThief) {
+        catchPlayer(nearbyThief);
+      }
+    };
+
+    const catchPlayer = (player: any) => {
+      if (navigator.vibrate) {
+        navigator.vibrate(300);
+      }
+
+      showCatchModal(player);
+
+      gameService.catchPlayer(player.id);
+    }
+
+    const calculateDistance = (pos1: any, pos2: any) => {
+      const R = 6371e3;
+      const φ1 = pos1.latitude * Math.PI / 180;
+      const φ2 = pos2.latitude * Math.PI / 180;
+      const Δφ = (pos2.latitude - pos1.latitude) * Math.PI / 180;
+      const Δλ = (pos2.longitude - pos1.longitude) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c; // Distance en mètres
+    }
 
     const retryGeolocation = () => {
       positionStore.startTracking()
@@ -368,6 +443,10 @@ export default defineComponent({
             checkVitrineProximity()
           }, 5000)
 
+          const playerCheckInterval = setInterval(() => {
+            checkPlayerProximity()
+          }, 5000)
+
         }
       }, { immediate: true })
 
@@ -433,7 +512,10 @@ export default defineComponent({
       calibrationMode,
       toggleCalibrationMode,
       cancelCalibration,
-      resetCalibration
+      resetCalibration,
+      catchModalVisible,
+      caughtPlayer,
+      closeCatchModal
     }
   }
 })
