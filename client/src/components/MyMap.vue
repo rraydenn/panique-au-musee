@@ -79,6 +79,10 @@ let markers: Record<string, Marker> = {}
 let zrrPolygon: Polygon | null = null
 const activeVitrinesCount = ref<number | null>(null)
 
+let ttlInterval: number | null = null
+let updateInterval: number | null = null
+let playerCheckInterval: number | null = null
+
 export default defineComponent({
   name: 'MyMap',
   components: {
@@ -104,6 +108,44 @@ export default defineComponent({
       image: '',
       role: ''
     })
+    const wakeLock = ref<WakeLockSentinel | null>(null)
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        await requestWakeLock()
+      } else {
+        await releaseWakeLock()
+      }
+    }
+
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock.value = await navigator.wakeLock.request('screen')
+          console.log('Wake Lock is active')
+
+          wakeLock.value.addEventListener('release', () => {
+            console.log('Wake Lock released')
+            wakeLock.value = null
+          })
+        } else {
+          console.warn('Wake Lock API is not supported in this browser.')
+        }
+      } catch (error) {
+        console.error('Failed to acquire wake lock:', error)
+      }
+    }
+
+    const releaseWakeLock = async () => {
+      if (wakeLock.value) {
+        try {
+          await wakeLock.value.release()
+          wakeLock.value = null
+        } catch (error) {
+          console.error('Failed to release wake lock:', error)
+        }
+      }
+    }
 
     const showCatchModal = (player: any) => {
       caughtPlayer.value = player
@@ -407,6 +449,10 @@ export default defineComponent({
     onMounted(async () => {
       positionStore.startTracking()
 
+      await requestWakeLock()
+
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+
       watch(() => positionStore.position, async (currentPosition) => {
         if (currentPosition) {
           // Initialize Leaflet map
@@ -430,20 +476,20 @@ export default defineComponent({
           updateActiveVitrinesCount()
 
           // Mise à jour locale du TTL toutes les 1s
-          const ttlInterval = setInterval(() => {
+          ttlInterval = setInterval(() => {
             gameService.decreaseTTL()
             updateMap()
           }, 1000)
           
           // Set interval to update map regularly
-          const updateInterval = setInterval(async () => {
+          updateInterval = setInterval(async () => {
             await gameService.fetchResources()
             updateMap()
             updateActiveVitrinesCount()
             checkVitrineProximity()
           }, 5000)
 
-          const playerCheckInterval = setInterval(() => {
+          playerCheckInterval = setInterval(() => {
             checkPlayerProximity()
           }, 5000)
 
@@ -456,6 +502,11 @@ export default defineComponent({
       onBeforeUnmount(() => {
         positionStore.stopTracking()
         gameService.cleanup()
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+        releaseWakeLock()
+        if (ttlInterval) clearInterval(ttlInterval)
+        if (updateInterval) clearInterval(updateInterval)
+        if (playerCheckInterval) clearInterval(playerCheckInterval)
         if (mymap) {
           mymap.remove()
           mymap = null
@@ -515,7 +566,9 @@ export default defineComponent({
       resetCalibration,
       catchModalVisible,
       caughtPlayer,
-      closeCatchModal
+      closeCatchModal,
+      requestWakeLock,
+      releaseWakeLock
     }
   }
 })
