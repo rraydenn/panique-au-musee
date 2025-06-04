@@ -77,6 +77,7 @@
 
 <script lang="ts">
 import 'leaflet/dist/leaflet.css'
+import * as L from 'leaflet'
 import { Map as LeafletMap, Marker, Polygon, Icon, DivIcon, LatLng } from 'leaflet'
 import type { LeafletMouseEvent } from 'leaflet'
 import { defineComponent, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
@@ -561,7 +562,6 @@ export default defineComponent({
         : [45.78200, 4.86550]
 
 
-      const L = await import('leaflet')
       mymap = L.map('map', {
         center: initialCenter, // Lyon coordinates
         zoom: 18
