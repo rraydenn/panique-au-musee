@@ -54,6 +54,11 @@ function initMap(): L.Map {
         updateLonValue(mymap.getCenter().lng);
     });
 
+     // Correction de bug d'affichage
+    setTimeout(() => {
+        mymap.invalidateSize();
+    }, 100); // un léger délai garantit que le DOM a fini son rendu
+
     return mymap;
 }
 
