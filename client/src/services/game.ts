@@ -298,6 +298,8 @@ class GameService {
         if (!positionStore.hasPosition && !positionStore.loading) {
             positionStore.startTracking();
         }
+
+        if(this.positionUpdateInterval) clearInterval(this.positionUpdateInterval);
         
         this.positionUpdateInterval = window.setInterval(() => {            
             // this.localPlayer.position.latitude += (Math.random() - 0.5) * 0.0001;
@@ -408,6 +410,49 @@ class GameService {
 
     async catchPlayer(playerId: string) {
         //TODO: implémenter la logique de capture d'un joueur (dans le back aussi ?)
+        try {
+            const response = await fetch('/game/capture-voleur', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem("token")}`,
+                    'Origin': window.location.origin
+                },
+                body: JSON.stringify({ voleurId: playerId })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to catch voleur');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error catching voleur:', error);
+            throw error;
+        }
+    }
+
+    async checkNearbyVoleurs() {
+        try {
+            const response = await fetch('/game/isNearby?targetRole=VOLEUR', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                return null;
+            }
+
+            return result.nearby || [];
+        } catch (error) {
+            console.error('Error checking nearby voleurs:', error);
+            return null;
+        }
     }
 }
 

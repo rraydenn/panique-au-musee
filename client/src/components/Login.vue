@@ -48,7 +48,6 @@ export default {
             const token = authHeader.substring(7)
             localStorage.setItem('token', token)
             localStorage.setItem('login', loginValue.value)
-            emit('login-success', token)
           }
         } else {
           emit('login-error', "Nom d'utilisateur ou mot de passe incorrect.")
@@ -68,6 +67,7 @@ export default {
           const userData = await getResponse.json()
           localStorage.setItem('userRole', userData.species || 'unknown')
           localStorage.setItem('userImage', userData.image || '')
+          emit('login-success', userData)
         } else {
           console.error('Erreur lors de la récupération des données utilisateur')
         }

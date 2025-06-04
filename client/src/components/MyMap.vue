@@ -15,20 +15,30 @@
     </div>
 
     <div v-else id="map-container" style="position: relative;">
-      <div id="map" class="map" ref="map"></div>
+      <div id="map" class="map" ref="mapElement"></div>
 
       <div v-if="nearbyVitrine" class="vitrine-overlay">
         <h3>Vitrine Trouvée!</h3>
         <p>Vous êtes à proximité d'une vitrine.</p>
-        <p v-if="userRole === 'voleur'">Voler cette vitrine?</p>
+        <p v-if="userRole === 'VOLEUR'">Voler cette vitrine?</p>
         <p v-else>Sécuriser cette vitrine?</p>
         <button @click="interactWithVitrine">
-          {{  userRole === 'voleur' ? 'Voler' : 'Sécuriser' }}
+          {{  userRole === 'VOLEUR' ? 'Voler' : 'Sécuriser' }}
         </button>
       </div>
       <div v-if="actionMessage" class="vitrine-overlay">
         <p>{{ actionMessage }}</p>
       </div>
+
+      <div v-if="captureConfirmVisible && selectedVoleur" class="capture-confirm-overlay">
+        <div class="capture-confirm-modal">
+          <h3>Capturer le voleur ?</h3>
+          <div class="capture-buttons">
+            <button @click="confirmCapture" class="confirm-button">Capturer</button>
+            <button @click="cancelCapture" class="annuler-button">Annuler</button>
+          </div>
+        </div>
+      </div>"
 
       <div v-if="calibrationMode" class="calibration-overlay">
         <h3>Mode Calibration</h3>
@@ -51,7 +61,7 @@
       <CatchModal
         v-if="catchModalVisible"
         :show="catchModalVisible"
-        :caught-player="caughtPlayer"
+        :caught-player="selectedVoleur"
         :user-role="userRole"
         @close="closeCatchModal"
       />
@@ -69,7 +79,7 @@
 import 'leaflet/dist/leaflet.css'
 import { Map as LeafletMap, Marker, Polygon, Icon, DivIcon, LatLng } from 'leaflet'
 import type { LeafletMouseEvent } from 'leaflet'
-import { defineComponent, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { defineComponent, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import gameService from '@/services/game'
 import { usePositionStore } from '@/stores/position'
 import CatchModal from '@/components/CatchModal.vue'
@@ -102,12 +112,13 @@ export default defineComponent({
     const calibrationMode = ref(false)
     const longPressTimeout = ref<number | null>(null)
     const catchModalVisible = ref(false)
-    const caughtPlayer = ref({
-      id: '',
-      username: '',
-      image: '',
-      role: ''
-    })
+    const captureConfirmVisible = ref(false)
+    const selectedVoleur = ref<{
+      id: string;
+      username: string;
+      role: string;
+      image?: string;
+    } | null>(null)
     const wakeLock = ref<WakeLockSentinel | null>(null)
 
     const handleVisibilityChange = async () => {
@@ -122,10 +133,8 @@ export default defineComponent({
       try {
         if ('wakeLock' in navigator) {
           wakeLock.value = await navigator.wakeLock.request('screen')
-          console.log('Wake Lock is active')
 
           wakeLock.value.addEventListener('release', () => {
-            console.log('Wake Lock released')
             wakeLock.value = null
           })
         } else {
@@ -148,7 +157,7 @@ export default defineComponent({
     }
 
     const showCatchModal = (player: any) => {
-      caughtPlayer.value = player
+      selectedVoleur.value = player
       catchModalVisible.value = true
     }
 
@@ -156,51 +165,45 @@ export default defineComponent({
       catchModalVisible.value = false
     }
 
-    const checkPlayerProximity = () => {
+    const checkPlayerProximity = async () => {
       //fonction pour vérifier la proximité des joueurs
-      if (props.userRole !== 'policier') return;
+      if (props.userRole !== 'POLICIER') return;
 
-      const localPlayerPos = {
-        latitude: gameService.localPlayer.position.latitude,
-        longitude: gameService.localPlayer.position.longitude
-      }
+      try {
+        const nearbyVoleurs = await gameService.checkNearbyVoleurs();
 
-      const nearbyThief = gameService.players.find(player => {
-        if (player.role !== 'voleur') return false;
-
-        const distance = calculateDistance(localPlayerPos, player.position); //calculateDistance existe déjà quelque part ?
-
-        return distance <= 5;
-      });
-
-      if (nearbyThief) {
-        catchPlayer(nearbyThief);
+        if (nearbyVoleurs && nearbyVoleurs.length > 0) {
+          selectedVoleur.value = nearbyVoleurs[0];
+          captureConfirmVisible.value = true;
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification des voleurs à proximité:', error);
       }
     };
 
-    const catchPlayer = (player: any) => {
-      if (navigator.vibrate) {
-        navigator.vibrate(300);
+    const confirmCapture = async () => {
+      if (!selectedVoleur.value) return;
+
+      try {
+        await gameService.catchPlayer(selectedVoleur.value.id);
+        showCatchModal(selectedVoleur.value);
+
+        selectedVoleur.value = null;
+        captureConfirmVisible.value = false;
+
+        updateMap();
+      } catch (error) {
+        console.error('Erreur lors de la capture du joueur:', error);
+        actionMessage.value = "Échec de la capture du joueur.";
+        setTimeout(() => {
+          actionMessage.value = null;
+        }, 2000);
       }
-
-      showCatchModal(player);
-
-      gameService.catchPlayer(player.id);
     }
 
-    const calculateDistance = (pos1: any, pos2: any) => {
-      const R = 6371e3;
-      const φ1 = pos1.latitude * Math.PI / 180;
-      const φ2 = pos2.latitude * Math.PI / 180;
-      const Δφ = (pos2.latitude - pos1.latitude) * Math.PI / 180;
-      const Δλ = (pos2.longitude - pos1.longitude) * Math.PI / 180;
-
-      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-      return R * c; // Distance en mètres
+    const cancelCapture = () => {
+      selectedVoleur.value = null;
+      captureConfirmVisible.value = false;
     }
 
     const retryGeolocation = () => {
@@ -456,9 +459,11 @@ export default defineComponent({
       watch(() => positionStore.position, async (currentPosition) => {
         if (currentPosition) {
           // Initialize Leaflet map
-          await initializeMap()
+          if(!mymap) {
+            await initializeMap()
+            setupMapPressEvents()
 
-          setupMapPressEvents()
+          }
           
           // Initialize game data with mock user ID
           const userId = localStorage.getItem('login') || 'user-123'
@@ -475,6 +480,16 @@ export default defineComponent({
           await gameService.fetchResources()
           updateActiveVitrinesCount()
 
+          if (ttlInterval) {
+            clearInterval(ttlInterval)
+          }
+          if (updateInterval) {
+            clearInterval(updateInterval)
+          }
+          if (playerCheckInterval) {
+            clearInterval(playerCheckInterval)
+          }
+
           // Mise à jour locale du TTL toutes les 1s
           ttlInterval = setInterval(() => {
             gameService.decreaseTTL()
@@ -489,19 +504,20 @@ export default defineComponent({
             checkVitrineProximity()
           }, 5000)
 
-          playerCheckInterval = setInterval(() => {
-            checkPlayerProximity()
-          }, 5000)
+          if (props.userRole === 'POLICIER') {
+            // Check for nearby players every 5 seconds
+            playerCheckInterval = setInterval(() => {
+              checkPlayerProximity()
+            }, 5000)
+          }
 
         }
       }, { immediate: true })
+    })
 
-      
-      
-      // Cleanup on unmount
+    // Cleanup on unmount
       onBeforeUnmount(() => {
         positionStore.stopTracking()
-        gameService.cleanup()
         document.removeEventListener('visibilitychange', handleVisibilityChange)
         releaseWakeLock()
         if (ttlInterval) clearInterval(ttlInterval)
@@ -515,23 +531,39 @@ export default defineComponent({
           clearTimeout(longPressTimeout.value)
           longPressTimeout.value = null
         }
+        gameService.cleanup()
       })
-    })
     
     async function initializeMap() {
       if (mymap) {
+        mymap.off()
         mymap.remove()
-        markers = {}
-        zrrPolygon = null
+        mymap = null
+      }
+
+      markers = {}
+      zrrPolygon = null
+      
+      await nextTick()
+      
+      if (!mapElement.value) return
+
+      const container = mapElement.value.querySelector('#map')
+      if (container) {
+        container.innerHTML = ''
+        container.removeAttribute('class')
+        container.removeAttribute('style')
       }
       
-      // Get map element
-      mapElement.value = document.getElementById('map')
-      if (!mapElement.value) return
-      
+      const currentPos = positionStore.position
+      const initialCenter: [number, number] = currentPos
+        ? [currentPos.latitude, currentPos.longitude]
+        : [45.78200, 4.86550]
+
+
       const L = await import('leaflet')
       mymap = L.map('map', {
-        center: [45.78200, 4.86550], // Lyon coordinates
+        center: initialCenter, // Lyon coordinates
         zoom: 18
       })
       
@@ -565,10 +597,13 @@ export default defineComponent({
       cancelCalibration,
       resetCalibration,
       catchModalVisible,
-      caughtPlayer,
       closeCatchModal,
       requestWakeLock,
-      releaseWakeLock
+      releaseWakeLock,
+      captureConfirmVisible,
+      selectedVoleur,
+      confirmCapture,
+      cancelCapture,
     }
   }
 })
@@ -745,4 +780,58 @@ export default defineComponent({
   100% { transform: rotate(360deg); }
 }
 
+.capture-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.capture-confirm-modal {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  max-width: 300px;
+  width: 90%;
+}
+
+.capture-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.cancel-button, .confirm-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cancel-button {
+  background: #ccc;
+  color: #333;
+}
+
+.confirm-button {
+  background: #ff4444;
+  color: white;
+}
+
+.cancel-button:hover {
+  background: #bbb;
+}
+
+.confirm-button:hover {
+  background: #cc3333;
+}
 </style>

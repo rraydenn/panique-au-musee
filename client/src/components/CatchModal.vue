@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="catch-modal-overlay">
+  <div v-if="show && caughtPlayer" class="catch-modal-overlay">
     <div class="catch-modal">
       <h2>{{ title }}</h2>
       <div class="player-info">
@@ -18,6 +18,13 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue'
 
+interface Player {
+  id: string
+  username: string
+  image?: string
+  role: string
+}
+
 export default defineComponent({
   name: 'CatchModal',
   props: {
@@ -26,13 +33,8 @@ export default defineComponent({
       default: false
     },
     caughtPlayer: {
-      type: Object,
-      default: () => ({
-        id: '',
-        username: '',
-        image: '',
-        role: ''
-      })
+      type: Object as () => Player | null,
+      default: () => null
     },
     userRole: {
       type: String,
@@ -46,7 +48,7 @@ export default defineComponent({
 
     // Update title and message based on roles
     watch(() => [props.show, props.userRole, props.caughtPlayer], () => {
-      if (props.show) {
+      if (props.show && props.caughtPlayer) {
         // Make the phone vibrate when modal appears
         if (navigator.vibrate) {
           navigator.vibrate([200, 100, 200, 100, 200])
