@@ -42,7 +42,7 @@ deploy_client:
     - cd client
     - npm install
     - npm run build
-    - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY dist/* gitlabci@192.168.75.94:/usr/share/nginx/html
+    - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY dist/* gitlabci@192.168.75.94:/usr/share/nginx/html/
 
 deploy_admin:
   rules:
