@@ -29,16 +29,20 @@ deploy_tomcat:
     - mvn clean package
     - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY target/users.war gitlabci@192.168.75.94:/opt/tomcat/webapps/users.war
 
-deploy_SPA:
+deploy_client:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
-        - client_SPA.html  # Déploiement uniquement si `client_SPA.html` change
+        - client/**/** # Déploiement uniquement si des fichiers dans 'client' changent
   when: manual  # Déploiement manuel
   before_script:
     - *before_script_common
+    - apk add nodejs npm openssh-client
   script:
-    - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY client_SPA.html gitlabci@192.168.75.94:/usr/share/nginx/html/index.html
+    - cd client
+    - npm install
+    - npm run build
+    - scp -o StrictHostKeyChecking=no -i $CI_SSH_KEY dist/* gitlabci@192.168.75.94:/usr/share/nginx/html
 
 deploy_admin:
   rules:
