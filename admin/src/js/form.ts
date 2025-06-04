@@ -37,6 +37,15 @@ function initListeners(mymap: any): void {
         sendZrr(mymap);
     });
 
+    // 
+    (document.getElementById("addVitrineButton") as HTMLButtonElement).addEventListener("click", () => {
+        // Mettre à jour les champs du formulaire avec les valeurs actuelles de la vitrine
+        const latInputVitrine = document.getElementById('vitrineLat') as HTMLInputElement;
+        const lonInputVitrine = document.getElementById('vitrineLng') as HTMLInputElement;
+        sendVitrine(latInputVitrine.value, lonInputVitrine.value);
+    });
+
+    // Écouteur pour le bouton de définition du TTL
     (document.getElementById("setTtlButton") as HTMLButtonElement).addEventListener("click", () => {
         setTtl();
     });
@@ -148,6 +157,65 @@ function sendZrr(mymap: any): void {
         sendButton.textContent = originalText;
         
         console.error("Erreur lors de l'envoi de la ZRR:", error);
+        alert("Erreur de connexion au serveur");
+    });
+}
+
+function sendVitrine(latInput: string, lonInput: string): void {
+    // Récupérer les valeurs des champs de latitude et longitude
+    const lat = parseFloat(latInput);
+    const lon = parseFloat(lonInput);
+    
+    // Vérifier que les valeurs sont valides
+    if (isNaN(lat) || isNaN(lon)) {
+        alert("Veuillez entrer des coordonnées valides pour la vitrine.");
+        return;
+    }
+    
+    // Récupérer le token d'authentification
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+        alert("Vous n'êtes pas authentifié. Veuillez vous connecter.");
+        return;
+    }
+    
+    // Afficher un indicateur de chargement
+    const addButton = document.getElementById("addVitrineButton") as HTMLButtonElement;
+    const originalText = addButton.textContent;
+    addButton.disabled = true;
+    addButton.textContent = "Envoi...";
+    
+    // Envoyer la requête au serveur
+    fetch(`${apiPath}/admin/vitrine`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${token}`
+        },
+        body: JSON.stringify({ position : [lat, lon] })
+    })
+    .then(response => {
+        // Restaurer le bouton
+        addButton.disabled = false;
+        addButton.textContent = originalText;
+        
+        if (response.ok) {
+            alert("Vitrine ajoutée avec succès !");
+        } else {
+            response.text().then(text => {
+                console.error("Erreur serveur:", text);
+                alert(`Erreur lors de l'ajout de la vitrine: ${response.status} ${response.statusText}`);
+            }).catch(() => {
+                alert("Erreur lors de l'ajout de la vitrine");
+            });
+        }
+    })
+    .catch(error => {
+        // Restaurer le bouton en cas d'erreur
+        addButton.disabled = false;
+        addButton.textContent = originalText;
+        
+        console.error('Erreur:', error);
         alert("Erreur de connexion au serveur");
     });
 }

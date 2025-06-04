@@ -49,8 +49,12 @@ router.post("/treat-vitrine", (req, res) => {
 // 4. Route pour capturer un voleur
 router.post('/capture-voleur', (req, res) => {
 	const userId = req.user.sub;
-	const result = DAO.captureVoleur(userId);
-	return result.error ? res.status(400).json(result) : res.json(result);
+    const { voleurId } = req.body;
+    if (!voleurId) {
+        return res.status(400).json({ error: "L'ID du voleur est requis" });
+    }
+    const result = DAO.captureVoleur(userId, voleurId);
+    return result.error ? res.status(400).json(result) : res.json(result);
 });
 
 // 5. Récupérer les limites de la ZRR

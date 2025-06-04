@@ -101,7 +101,7 @@ class DAO {
 		if (nearby.length > 0) {
 			return { success: true, nearby };
 		} else {
-			return { error: "Aucune ressource trouvée à proximité" };
+			return { success: false, message: "Aucune ressource à proximité" };
 		}
 	}
 
