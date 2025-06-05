@@ -38,7 +38,7 @@
             <button @click="cancelCapture" class="annuler-button">Annuler</button>
           </div>
         </div>
-      </div>"
+      </div>
 
       <div v-if="calibrationMode" class="calibration-overlay">
         <h3>Mode Calibration</h3>

@@ -1,6 +1,7 @@
 import { LatLng } from "leaflet";
 import { ref, reactive } from "vue";
 import { usePositionStore } from "@/stores/position";
+import { API_CONFIG } from "@/config/api";
 
 export interface Position {
     latitude: number;
@@ -182,7 +183,7 @@ class GameService {
             }
 
             //this.debug('info', 'fetchZRR', 'Making API request to /game/zrr');
-            const response = await fetch('/game/zrr', {
+            const response = await fetch(`${API_CONFIG.GAME_BASE_URL}/zrr`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Origin': window.location.origin
@@ -224,7 +225,7 @@ class GameService {
             }
 
             //this.debug('info', 'fetchResources', 'Making API request to /game/resources');
-            const response = await fetch('/game/resources', {
+            const response = await fetch(`${API_CONFIG.GAME_BASE_URL}/resources`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Origin': window.location.origin
@@ -336,7 +337,7 @@ class GameService {
             
             //this.debug('info', 'updatePlayerPosition', `Sending position update for player ${this.localPlayer.id}`, { latitude, longitude });
             
-            const response = await fetch(`/game/resource/${this.localPlayer.id}/position`, {
+            const response = await fetch(`${API_CONFIG.GAME_BASE_URL}/resource/${this.localPlayer.id}/position`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -385,7 +386,7 @@ class GameService {
             }            
 
             //this.debug('info', 'interactWithVitrine', 'Making API request to /game/treat-vitrine');
-            const response = await fetch(`/game/treat-vitrine`, {
+            const response = await fetch(`${API_CONFIG.GAME_BASE_URL}/treat-vitrine`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -411,7 +412,7 @@ class GameService {
     async catchPlayer(playerId: string) {
         //TODO: implémenter la logique de capture d'un joueur (dans le back aussi ?)
         try {
-            const response = await fetch('/game/capture-voleur', {
+            const response = await fetch(`${API_CONFIG.GAME_BASE_URL}/capture-voleur`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -436,7 +437,7 @@ class GameService {
 
     async checkNearbyVoleurs() {
         try {
-            const response = await fetch('/game/isNearby?targetRole=VOLEUR', {
+            const response = await fetch(`${API_CONFIG.GAME_BASE_URL}/isNearby?targetRole=VOLEUR`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 }

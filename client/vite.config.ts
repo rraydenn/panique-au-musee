@@ -21,7 +21,7 @@ export default defineConfig({
         target: 'https://192.168.75.94:8443', // Adresse de Spring Boot
         changeOrigin: true,
         headers: {
-          Origin: 'https://192.168.75.94' // Explicitly set the Origin to match target
+          Origin: 'https://192.168.75.94'
         },
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/users')
@@ -31,7 +31,7 @@ export default defineConfig({
         target: 'https://192.168.75.94', // Adresse de Express
         changeOrigin: true,
         headers: {
-          Origin: 'https://192.168.75.94' // Explicitly set the Origin to match target
+          Origin: 'https://192.168.75.94'
         },
         secure: false,
         rewrite: (path) => path.replace(/^\/game/, '/api/game')
@@ -44,7 +44,7 @@ export default defineConfig({
   //       target: 'http://localhost:8080', // Adresse de Spring Boot
   //       changeOrigin: true,
   //       headers: {
-  //         Origin: 'http://localhost' // Explicitly set the Origin to match target
+  //         Origin: 'http://localhost'
   //       },
   //       secure: false,
   //       rewrite: (path) => path.replace(/^\/api/, '')
@@ -54,7 +54,7 @@ export default defineConfig({
   //       target: 'http://localhost:3376', // Adresse de Express
   //       changeOrigin: true,
   //       headers: {
-  //         Origin: 'http://localhost' // Explicitly set the Origin to match target
+  //         Origin: 'http://localhost'
   //       },
   //       secure: false,
   //       rewrite: (path) => path.replace(/^\/game/, '/game')

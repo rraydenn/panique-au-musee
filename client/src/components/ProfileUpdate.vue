@@ -23,6 +23,7 @@
 
 <script lang="ts">
 import { ref } from 'vue'
+import { API_CONFIG } from '@/config/api'
 export default {
     name: 'ProfileUpdate',
     setup() {
@@ -42,7 +43,7 @@ export default {
                     return
                 }
 
-                const response = await fetch(`/api/users/${login}`, {
+                const response = await fetch(`${API_CONFIG.AUTH_BASE_URL}/users/${login}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

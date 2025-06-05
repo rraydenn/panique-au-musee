@@ -12,6 +12,7 @@
 
 <script lang="ts">
 import { ref } from 'vue'
+import { API_CONFIG } from '@/config/api'
 
 export default {
   name: 'MyLogin',
@@ -30,7 +31,7 @@ export default {
       }
 
       try {
-        const response = await fetch('/api/login', {
+        const response = await fetch(`${API_CONFIG.AUTH_BASE_URL}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -54,7 +55,7 @@ export default {
           return
         }
 
-        const getResponse = await fetch(`/api/users/${loginValue.value}`, {
+        const getResponse = await fetch(`${API_CONFIG.AUTH_BASE_URL}/users/${loginValue.value}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,

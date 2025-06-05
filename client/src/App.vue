@@ -3,6 +3,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
 import Login from './components/Login.vue'
+import { API_CONFIG } from '@/config/api'
 
 const logged = ref(false)
 const loginError = ref('')
@@ -35,7 +36,7 @@ const handleLoginError = (error: string) => {
 const logout = async () => {
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch('/api/logout', {
+    const response = await fetch(`${API_CONFIG.AUTH_BASE_URL}/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -44,9 +45,7 @@ const logout = async () => {
       },
     })
 
-    console.log('Statut de la réponse (logout):', response.status)
     if (response.ok) {
-      console.log('Déconnexion réussie')
     } else {
       console.error('Déconnexion échouée')
     }
