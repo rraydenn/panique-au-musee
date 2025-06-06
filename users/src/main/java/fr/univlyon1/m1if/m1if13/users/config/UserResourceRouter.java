@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -128,6 +129,49 @@ public class UserResourceRouter {
                 .andRoute(PUT("/users/{userId}").and(contentType(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)),
                         userHandler::updateUser)
                 .andRoute(DELETE("/users/{userId}"),
-                        userHandler::deleteUser);
+                        userHandler::deleteUser)
+                .filter(optionsFilter());
+    }
+    
+    private HandlerFilterFunction<ServerResponse, ServerResponse> optionsFilter() {
+        return (request, next) -> {
+            if ("OPTIONS".equals(request.method().name())) {
+                String origin = request.headers().firstHeader("Origin");
+                String allowedOrigin = determineAllowedOrigin(origin);
+                
+                return ServerResponse.ok()
+                        .header("Access-Control-Allow-Origin", allowedOrigin)
+                        .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                        .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                        .header("Access-Control-Allow-Credentials", "true")
+                        .header("Access-Control-Expose-Headers", "Authorization")
+                        .header("Access-Control-Max-Age", "3600")
+                        .build();
+            }
+            return next.handle(request);
+        };
+    }
+    
+    private String determineAllowedOrigin(String origin) {
+        // List of allowed origins
+        String[] allowedOrigins = {
+            "https://192.168.75.94",
+            "http://localhost",
+            "http://127.0.0.1",
+            "http://localhost:8080",
+            "http://localhost:5173"
+        };
+        
+        if (origin == null) {
+            return "https://192.168.75.94"; // Default origin
+        }
+        
+        for (String allowed : allowedOrigins) {
+            if (origin.equals(allowed) || origin.contains("localhost")) {
+                return origin;
+            }
+        }
+        
+        return "https://192.168.75.94";
     }
 }

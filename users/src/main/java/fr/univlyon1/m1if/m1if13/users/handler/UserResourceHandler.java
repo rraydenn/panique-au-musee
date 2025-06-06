@@ -29,6 +29,11 @@ public class UserResourceHandler {
     public ServerResponse getAllUsers(ServerRequest request) {
         UsersResponseDto usersDto = userResourceService.getAllUsersDto();
         return ServerResponse.ok()
+                .header("Access-Control-Allow-Origin", determineAllowedOrigin(request))
+                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                .header("Access-Control-Allow-Credentials", "true")
+                .header("Access-Control-Expose-Headers", "Authorization")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(usersDto);
     }
@@ -37,9 +42,20 @@ public class UserResourceHandler {
         User user = request.body(User.class);
         try {
             URI location = userResourceService.createUser(user);
-            return ServerResponse.created(location).build();
+            return ServerResponse.created(location)
+                    .header("Access-Control-Allow-Origin", determineAllowedOrigin(request))
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .header("Access-Control-Expose-Headers", "Authorization")
+                    .build();
         } catch (NameAlreadyBoundException e) {
             return ServerResponse.status(HttpStatus.CONFLICT)
+                    .header("Access-Control-Allow-Origin", determineAllowedOrigin(request))
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .header("Access-Control-Expose-Headers", "Authorization")
                     .body("Un utilisateur avec le login " + user.getLogin() + " existe déjà.");
         }
     }
@@ -49,10 +65,21 @@ public class UserResourceHandler {
         try {
             UserResponseDto user = userResourceService.getUser(userId);
             return ServerResponse.ok()
+                    .header("Access-Control-Allow-Origin", determineAllowedOrigin(request))
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .header("Access-Control-Expose-Headers", "Authorization")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(user);
         } catch (NameNotFoundException e) {
-            return ServerResponse.notFound().build();
+            return ServerResponse.notFound()
+                    .header("Access-Control-Allow-Origin", determineAllowedOrigin(request))
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .header("Access-Control-Expose-Headers", "Authorization")
+                    .build();
         }
     }
 
@@ -63,10 +90,22 @@ public class UserResourceHandler {
 
         try {
             userResourceService.createUser(user);
-            return ServerResponse.created(URI.create("users/" + userId)).build();
+            return ServerResponse.created(URI.create("users/" + userId))
+                    .header("Access-Control-Allow-Origin", determineAllowedOrigin(request))
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .header("Access-Control-Expose-Headers", "Authorization")
+                    .build();
         } catch (NameAlreadyBoundException e) {
             userResourceService.updateUser(userId, user, origin, request.servletRequest());
-            return ServerResponse.noContent().build();
+            return ServerResponse.noContent()
+                    .header("Access-Control-Allow-Origin", determineAllowedOrigin(request))
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                    .header("Access-Control-Allow-Credentials", "true")
+                    .header("Access-Control-Expose-Headers", "Authorization")
+                    .build();
         }
     }
 
@@ -75,6 +114,37 @@ public class UserResourceHandler {
         try {
             userResourceService.deleteUser(userId);
         } catch (NameNotFoundException ignored) {}
-        return ServerResponse.noContent().build();
+        return ServerResponse.noContent()
+                .header("Access-Control-Allow-Origin", determineAllowedOrigin(request))
+                .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                .header("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin")
+                .header("Access-Control-Allow-Credentials", "true")
+                .header("Access-Control-Expose-Headers", "Authorization")
+                .build();
+    }
+
+    private String determineAllowedOrigin(ServerRequest request) {
+        String origin = request.headers().firstHeader("Origin");
+        
+        // List of allowed origins
+        String[] allowedOrigins = {
+            "https://192.168.75.94",
+            "http://localhost",
+            "http://127.0.0.1",
+            "http://localhost:8080",
+            "http://localhost:5173"
+        };
+        
+        if (origin == null) {
+            return "https://192.168.75.94";
+        }
+        
+        for (String allowed : allowedOrigins) {
+            if (origin.equals(allowed) || origin.contains("localhost")) {
+                return origin;
+            }
+        }
+        
+        return "https://192.168.75.94";
     }
 }
