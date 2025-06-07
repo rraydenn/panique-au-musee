@@ -17,14 +17,13 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
+      '/users': {
         target: 'https://192.168.75.94:8443', // Adresse de Spring Boot
         changeOrigin: true,
         headers: {
           Origin: 'https://192.168.75.94'
         },
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/users')
       },
       '/game': {
         //TODO : ajouter le serveur pour request les données de jeu (ZRR par exemple)
