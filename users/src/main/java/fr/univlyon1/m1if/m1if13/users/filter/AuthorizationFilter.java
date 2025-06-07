@@ -43,11 +43,6 @@ public class AuthorizationFilter extends HttpFilter {
     @Override
     @SuppressWarnings("unchecked")
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        if ("OPTIONS".equals(request.getMethod())) {
-            chain.doFilter(request, response);
-            return;
-        }
-
         // Si l'utilisateur n'est pas authentifié (mais que la requête a passé le filtre d'authentification), c'est que ce filtre est sans objet
         if(!userTokenProvider.isUserConnected(request)) {
             chain.doFilter(request, response);
