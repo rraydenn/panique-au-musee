@@ -156,10 +156,19 @@ public class UserResourceRouter {
         // List of allowed origins
         String[] allowedOrigins = {
             "https://192.168.75.94",
+            "https://192.168.75.94:443",
+            "http://192.168.75.94",
+            "http://192.168.75.94:80",
+            "https://192.168.75.94:8443",
+            "https://192.168.75.94:8080",
+            "https://192.168.75.94:3376",
+            "http://192.168.75.94:3376",
             "http://localhost",
+            "https://localhost",
             "http://127.0.0.1",
             "http://localhost:8080",
-            "http://localhost:5173"
+            "http://localhost:5173",
+            "https://localhost:8443"
         };
         
         if (origin == null) {

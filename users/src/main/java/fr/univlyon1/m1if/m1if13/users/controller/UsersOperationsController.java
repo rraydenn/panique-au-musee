@@ -40,7 +40,22 @@ public class UsersOperationsController {
      * @return Une ResponseEntity avec le JWT dans le header "Authorization" si le login s'est bien passé, et le code de statut approprié (204, 401 ou 404).
      */
     @Hidden
-    @CrossOrigin(origins = {"http://localhost", "http://localhost:8080", "http://192.168.75.94", "https://192.168.75.94"}, 
+    @CrossOrigin(origins = {
+        "https://192.168.75.94",
+        "https://192.168.75.94:443",
+        "http://192.168.75.94",
+        "http://192.168.75.94:80",
+        "https://192.168.75.94:8443",
+        "https://192.168.75.94:8080",
+        "https://192.168.75.94:3376",
+        "http://192.168.75.94:3376",
+        "http://localhost",
+        "https://localhost",
+        "http://127.0.0.1",
+        "http://localhost:8080",
+        "http://localhost:5173",
+        "https://localhost:8443"
+    }, 
                 exposedHeaders = {"Authorization"},
                 allowCredentials = "true")
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -62,7 +77,22 @@ public class UsersOperationsController {
             @ApiResponse(responseCode = "401", description = "Échec d'authentification"),
             @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
     })
-    @CrossOrigin(origins = {"http://localhost", "http://localhost:8080", "http://192.168.75.94", "https://192.168.75.94"},
+    @CrossOrigin(origins = {
+        "https://192.168.75.94",
+        "https://192.168.75.94:443",
+        "http://192.168.75.94",
+        "http://192.168.75.94:80",
+        "https://192.168.75.94:8443",
+        "https://192.168.75.94:8080",
+        "https://192.168.75.94:3376",
+        "http://192.168.75.94:3376",
+        "http://localhost",
+        "https://localhost",
+        "http://127.0.0.1",
+        "http://localhost:8080",
+        "http://localhost:5173",
+        "https://localhost:8443"
+    },
                 exposedHeaders = {"Authorization"},
                 allowCredentials = "true")
     @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -82,7 +112,22 @@ public class UsersOperationsController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Déconnexion réussie")
     })
-    @CrossOrigin(origins = {"http://localhost", "http://localhost:8080", "http://192.168.75.94", "https://192.168.75.94"},
+    @CrossOrigin(origins = {
+        "https://192.168.75.94",
+        "https://192.168.75.94:443",
+        "http://192.168.75.94",
+        "http://192.168.75.94:80",
+        "https://192.168.75.94:8443",
+        "https://192.168.75.94:8080",
+        "https://192.168.75.94:3376",
+        "http://192.168.75.94:3376",
+        "http://localhost",
+        "https://localhost",
+        "http://127.0.0.1",
+        "http://localhost:8080",
+        "http://localhost:5173",
+        "https://localhost:8443"
+    },
                 allowCredentials = "true")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
