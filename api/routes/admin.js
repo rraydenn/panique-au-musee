@@ -98,4 +98,15 @@ router.post('/vitrine', (req, res) => {
 	return result.error ? res.status(400).json(result) : res.status(201).json(newVitrine);
 });
 
+// 6. Changer l'espece d'un joueur
+router.put("/resource/:id/role", (req, res) => {
+	const { id } = req.params;
+	const { role } = req.body;
+
+	const result = DAO.updatePlayerRole(id, role);
+	return result.error
+		? res.status(404).json(result)
+		: res.status(200).json(result);
+});
+
 export default router;

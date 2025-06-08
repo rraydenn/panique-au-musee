@@ -31,9 +31,20 @@ public class AuthenticationFilter extends HttpFilter {
         // Permet de retrouver la fin de l'URL (après l'URL du contexte) -> indépendant de l'URL de déploiement
         String url = request.getRequestURI().replaceFirst(request.getContextPath(), "");
 
+        // Gestion explicite des requêtes OPTIONS pour CORS
+        if (request.getMethod().equals("OPTIONS")) {
+            // Ajouter les en-têtes CORS nécessaires pour les requêtes OPTIONS
+            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
+            response.setHeader("Access-Control-Max-Age", "3600");
+            response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, Authorization, Origin");
+            response.setStatus(HttpServletResponse.SC_OK);
+            return; // Important: on ne continue pas la chaîne de filtres pour les requêtes OPTIONS
+        }
+
         // Laisse passer les URLs ne nécessitant pas d'authentification et les requêtes par des utilisateurs authentifiés
         if(
-                (request.getMethod().equals("OPTIONS")) ||
                 url.equals("/users")  ||
                 (url.startsWith("/users/") && request.getMethod().equals("DELETE")) ||
                 (url.equals("/login") && request.getMethod().equals("POST")) ||

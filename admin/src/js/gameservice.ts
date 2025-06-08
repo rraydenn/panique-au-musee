@@ -167,6 +167,7 @@ class GameService {
         this.updatePlayerList(resources);
     }
 
+    // Afficher les ressources dans une liste et permettre de changer le rôle des joueurs
     private updatePlayerList(resources: Resource[]): void {
         const playerList = document.getElementById('playerList');
         if (!playerList) return;
@@ -177,15 +178,66 @@ class GameService {
             li.style.display = "flex";
             li.style.alignItems = "center";
             li.style.gap = "0.5em";
+            
             if (res.role != 'vitrine') {
+                // Vérifier si c'est un joueur (POLICIER ou VOLEUR)
+                const isPlayer = res.role === 'POLICIER' || res.role === 'VOLEUR';
+                
                 li.innerHTML = ` <b> - ${res.id}</b>
-                                <img src="${res.image}" alt="${res.id}" style="width: 30px; height: 30px; border-radius: 50%;" />`;
+                            <img src="${res.image}" alt="${res.id}" style="width: 30px; height: 30px; border-radius: 50%;" />
+                            <span style="margin-left: 10px;">${res.role}</span>`;
+                
+                // Ajouter le bouton de changement d'espèce seulement pour les joueurs
+                if (isPlayer) {
+                    const changeRoleBtn = document.createElement('button');
+                    changeRoleBtn.innerText = res.role === 'POLICIER' ? 'Changer en VOLEUR' : 'Changer en POLICIER';
+                    changeRoleBtn.style.marginLeft = '10px';
+                    changeRoleBtn.style.padding = '3px 8px';
+                    changeRoleBtn.style.fontSize = '12px';
+                    changeRoleBtn.onclick = () => {
+                        const newRole = res.role === 'POLICIER' ? 'VOLEUR' : 'POLICIER';
+                        this.changePlayerRole(res.id, newRole);
+                    };
+                    li.appendChild(changeRoleBtn);
+                }
             }
             else {
                 li.innerHTML = `<b> - ${res.id}</b> ${res.ttl ? `<span style="color: red;">(Expire dans ${res.ttl})</span>` : ''}`;
             }
                                 
             playerList.appendChild(li);
+        });
+    }
+
+    // Méthode pour changer le rôle d'un joueur
+    public changePlayerRole(playerId: string, newRole: string): void {
+        const token = localStorage.getItem('adminToken');
+        
+        if (!token) {
+            console.error("Pas de token d'authentification disponible");
+            return;
+        }
+
+        console.log(`Changement du rôle du joueur ${playerId} en ${newRole}`);
+        
+        fetch(`${apiPath}/admin/resource/${playerId}/role`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ role: newRole })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            console.log(`Rôle du joueur ${playerId} changé en ${newRole}`);
+            // Rafraîchir les données après le changement
+            this.fetchResources();
+        })
+        .catch(error => {
+            console.error('Erreur lors du changement de rôle:', error);
         });
     }
     

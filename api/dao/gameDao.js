@@ -66,6 +66,15 @@ class DAO {
 		return { success: true, resource };
 	}
 
+	// Modifier le rôle d'une ressource (joueur ou vitrine)
+	updatePlayerRole(id, newRole) {
+		const resource = this.resources.find(r => r.id === id);
+		if (!resource) {
+			return { error: 'Joueur non trouvée' };
+		}
+		resource.role = newRole;
+		return { success: true, resource };
+	}
 
 	// Récupérer la liste des ressources pour un joueur
 	getResourcesForUser(userRole) {

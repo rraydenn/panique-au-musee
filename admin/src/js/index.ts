@@ -1,3 +1,5 @@
+import { apiSpringBootPath } from './config';
+
 declare global {
     interface Window {
       authenticateAdmin: () => Promise<boolean>;
@@ -21,7 +23,7 @@ declare global {
         
         try {
             // Send authentication request to Spring Boot server
-            const response = await fetch("https://192.168.75.94:8443/users/login", {
+            const response = await fetch(`${apiSpringBootPath}/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
