@@ -84,6 +84,7 @@ import { defineComponent, onMounted, onBeforeUnmount, ref, watch, nextTick } fro
 import gameService from '@/services/game'
 import { usePositionStore } from '@/stores/position'
 import CatchModal from '@/components/CatchModal.vue'
+import notificationService from '@/services/notifications'
 
 let mymap: LeafletMap | null = null
 let markers: Record<string, Marker> = {}
@@ -187,6 +188,12 @@ export default defineComponent({
 
       try {
         await gameService.catchPlayer(selectedVoleur.value.id);
+
+        notificationService.showCaptureNotification(
+          selectedVoleur.value.username,
+          true
+        )
+
         showCatchModal(selectedVoleur.value);
 
         selectedVoleur.value = null;
@@ -434,6 +441,10 @@ export default defineComponent({
     const interactWithVitrine = async () => {
       if (nearbyVitrine.value) {
         await gameService.interactWithVitrine(nearbyVitrine.value)
+
+        const action = props.userRole === 'VOLEUR' ? 'stolen' : 'secured'
+        notificationService.showVitrineNotification(action)
+
         nearbyVitrine.value = null
         updateMap()
 
@@ -452,6 +463,8 @@ export default defineComponent({
     
     onMounted(async () => {
       positionStore.startTracking()
+
+      await notificationService.requestPermission()
 
       await requestWakeLock()
 
