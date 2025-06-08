@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { updateLatValue, updateLonValue, updateZoomValue, updateMap as updateMapState } from './mapState';
+import { fetchAndDisplayZrr, updateLatValue, updateLonValue, updateZoomValue, updateMap as updateMapState } from './mapState';
 
 // initialisation de la map
 const lat : number = 45.782;
@@ -53,6 +53,9 @@ function initMap(): L.Map {
         updateLatValue(mymap.getCenter().lat);
         updateLonValue(mymap.getCenter().lng);
     });
+
+    // Récupérer et afficher la ZRR existante
+    fetchAndDisplayZrr(mymap);
 
      // Correction de bug d'affichage
     setTimeout(() => {

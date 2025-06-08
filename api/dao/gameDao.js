@@ -5,6 +5,7 @@ class DAO {
 		this.resources = [];  // Pour stocker les ressources (joueurs, vitrines)
 		this.zrr = null;      // Limites de la ZRR
 		this.defaultTTL = 60; // Durée par défaut du TTL en secondes
+		this.endGameBool = false; // Indicateur de fin de partie
 
 		// Démarrer le timer qui décrémente le TTL toutes les secondes
 		setInterval(() => {
@@ -70,9 +71,25 @@ class DAO {
 	updatePlayerRole(id, newRole) {
 		const resource = this.resources.find(r => r.id === id);
 		if (!resource) {
-			return { error: 'Joueur non trouvée' };
+			return { error: 'Joueur non trouvé' };
 		}
+		
+		// Supprimer les anciennes propriétés spécifiques au rôle précédent
+		if (resource.role === 'POLICIER') {
+			delete resource.terminated;
+		} else if (resource.role === 'VOLEUR') {
+			delete resource.captured;
+		}
+		
+		// Définir le nouveau rôle
 		resource.role = newRole;
+		
+		// Ajouter les propriétés spécifiques au nouveau rôle
+		if (newRole === 'POLICIER') {
+			resource.terminated = 0;
+		} else if (newRole === 'VOLEUR') {
+			resource.captured = false;
+		}
 		return { success: true, resource };
 	}
 
@@ -155,6 +172,11 @@ class DAO {
 			return { error: "Voleur introuvable ou non géolocalisé" };
 		}
 
+		// Vérifier si le voleur est déjà capturé
+		if (thief.captured) {
+			return { error: "Ce voleur a déjà été capturé" };
+		}
+
 		// Vérifier si le policier et le voleur sont à moins de 5m
 		const distance = haversine(policeman.position, thief.position);
 		if (distance > 5) {
@@ -163,6 +185,9 @@ class DAO {
 
 		// Capture réussie, incrémenter le compteur du policier
 		policeman.terminated = (policeman.terminated || 0) + 1;
+
+		// Marquer le voleur comme capturé
+    	thief.captured = true;
 
 		return { success: true, capturedVoleur: thief.id};
 	}
@@ -211,6 +236,44 @@ class DAO {
 	
 		return latitude >= latMin && latitude <= latMax &&
 			   longitude >= lngMin && longitude <= lngMax;
+	}
+
+	// Vérifier si tous les voleurs ont été capturés (fin de partie)
+	isGameOver() {
+		// Filtrer pour n'obtenir que les voleurs
+		const voleurs = this.resources.filter(r => r.role === 'VOLEUR');
+		
+		// Si aucun voleur n'existe dans le jeu, la partie n'est pas terminée
+		if (voleurs.length === 0) {
+			return false;
+		}
+		
+		// Vérifier si tous les voleurs sont capturés
+		let allCaptured = voleurs.every(voleur => voleur.captured === true);
+
+		if (this.endGameBool) {
+			allCaptured = true;
+		}
+		
+		return allCaptured;
+	}
+
+	// Fin de la partie - réinitialiser le jeu
+	endGame() {
+		// Sauvegarde des statistiques ou du résultat final si besoin
+		const gameStats = {
+			voleursCaptured: this.resources.filter(r => r.role === 'VOLEUR' && r.captured === true).length,
+			totalVoleurs: this.resources.filter(r => r.role === 'VOLEUR').length,
+			policierCount: this.resources.filter(r => r.role === 'POLICIER').length,
+			totalVitrines: this.resources.filter(r => r.role === 'vitrine').length,
+			timestamp: new Date().toISOString()
+		};
+		
+		// Réinitialiser les ressources mais garder la ZRR
+		this.resources = [];
+		this.endGameBool = true;
+		
+		return { success: true, message: "Partie terminée", stats: gameStats };
 	}
 	
 }

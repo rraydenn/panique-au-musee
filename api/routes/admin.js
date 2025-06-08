@@ -70,7 +70,8 @@ router.post('/player-role', (req, res) => {
 		position: { latitude: 45.78207, longitude: 4.86559 },
 		showcases: 0,
 		image,
-		...(role === 'POLICIER' && { terminated: 0 }) // Ajoute terminated uniquement si policier
+		...(role === 'POLICIER' && { terminated: 0 }), // Ajoute terminated uniquement si policier
+		...(role === 'VOLEUR' && { captured: false }) // Ajoute captured uniquement si voleur
 	});
 	return result.error ? res.status(400).json(result) : res.status(200).json({ username, role, image });	
 });
@@ -107,6 +108,12 @@ router.put("/resource/:id/role", (req, res) => {
 	return result.error
 		? res.status(404).json(result)
 		: res.status(200).json(result);
+});
+
+// 7. Mettre fin à la partie
+router.post("/end-game", (req, res) => {
+    const result = DAO.endGame();
+    return res.status(200).json(result);
 });
 
 export default router;

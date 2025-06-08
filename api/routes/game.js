@@ -78,4 +78,13 @@ router.put("/resource/:id/image", (req, res) => {
 		: res.status(200).json(result);
 });
 
+// 7. Récupérer le statut de la partie (si tous les voleurs sont capturés)
+router.get("/game-status", (req, res) => {
+    const isGameOver = DAO.isGameOver();
+    return res.json({ 
+        gameOver: isGameOver,
+        message: isGameOver ? "Tous les voleurs ont été capturés ! Partie terminée." : "La partie est toujours en cours."
+    });
+});
+
 export default router;  // Export du routeur pour l'importer dans server.js

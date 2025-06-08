@@ -1,5 +1,6 @@
 import * as L from 'leaflet';
 import { apiPath, refreshInterval } from './config';
+import { endGame } from './endGame';
 
 // Définition des types pour les ressources
 interface Resource {
@@ -11,6 +12,7 @@ interface Resource {
     role: string;
     image?: string;
     ttl?: string;
+    captured?: boolean;
     // Autres propriétés potentielles des ressources
 }
 
@@ -42,10 +44,14 @@ class GameService {
         
         // Récupérer les ressources immédiatement
         this.fetchResources();
+
+        // Vérifier le statut du jeu pour voir si tous les voleurs sont capturés
+        this.checkGameStatus();
         
         // Puis configurer le polling régulier
         this.pollingInterval = window.setInterval(() => {
             this.fetchResources();
+            this.checkGameStatus();
         }, this.pollingDelay);
         
         console.log(`Polling démarré (intervalle: ${this.pollingDelay}ms)`);
@@ -170,43 +176,55 @@ class GameService {
     // Afficher les ressources dans une liste et permettre de changer le rôle des joueurs
     private updatePlayerList(resources: Resource[]): void {
         const playerList = document.getElementById('playerList');
-        if (!playerList) return;
+    if (!playerList) return;
 
-        playerList.innerHTML = '';
-        resources.forEach(res => {
-            const li = document.createElement('li');
-            li.style.display = "flex";
-            li.style.alignItems = "center";
-            li.style.gap = "0.5em";
+    playerList.innerHTML = '';
+    resources.forEach(res => {
+        const li = document.createElement('li');
+        li.style.display = "flex";
+        li.style.alignItems = "center";
+        li.style.gap = "0.5em";
+        
+        if (res.role != 'vitrine') {
+            // Vérifier si c'est un joueur (POLICIER ou VOLEUR)
+            const isPlayer = res.role === 'POLICIER' || res.role === 'VOLEUR';
             
-            if (res.role != 'vitrine') {
-                // Vérifier si c'est un joueur (POLICIER ou VOLEUR)
-                const isPlayer = res.role === 'POLICIER' || res.role === 'VOLEUR';
-                
-                li.innerHTML = ` <b> - ${res.id}</b>
-                            <img src="${res.image}" alt="${res.id}" style="width: 30px; height: 30px; border-radius: 50%;" />
-                            <span style="margin-left: 10px;">${res.role}</span>`;
-                
-                // Ajouter le bouton de changement d'espèce seulement pour les joueurs
-                if (isPlayer) {
-                    const changeRoleBtn = document.createElement('button');
-                    changeRoleBtn.innerText = res.role === 'POLICIER' ? 'Changer en VOLEUR' : 'Changer en POLICIER';
-                    changeRoleBtn.style.marginLeft = '10px';
-                    changeRoleBtn.style.padding = '3px 8px';
-                    changeRoleBtn.style.fontSize = '12px';
-                    changeRoleBtn.onclick = () => {
-                        const newRole = res.role === 'POLICIER' ? 'VOLEUR' : 'POLICIER';
-                        this.changePlayerRole(res.id, newRole);
-                    };
-                    li.appendChild(changeRoleBtn);
-                }
+            // Vérifier si c'est un voleur capturé
+            const isVoleurCapture = res.role === 'VOLEUR' && res.captured === true;
+            
+            // Créer le contenu HTML de base pour tous les joueurs
+            let playerContent = `<b> - ${res.id}</b>
+                        <img src="${res.image}" alt="${res.id}" style="width: 30px; height: 30px; border-radius: 50%;" />
+                        <span style="margin-left: 10px;">${res.role}</span>`;
+                        
+            // Ajouter l'indicateur "CAPTURÉ" pour les voleurs capturés
+            if (isVoleurCapture) {
+                playerContent += `<span style="color: red; font-weight: bold; margin-left: 10px;">CAPTURÉ</span>`;
+                li.style.color = "red";
             }
-            else {
-                li.innerHTML = `<b> - ${res.id}</b> ${res.ttl ? `<span style="color: red;">(Expire dans ${res.ttl})</span>` : ''}`;
+            
+            li.innerHTML = playerContent;
+            
+            // Ajouter le bouton de changement d'espèce seulement pour les joueurs
+            if (isPlayer) {
+                const changeRoleBtn = document.createElement('button');
+                changeRoleBtn.innerText = res.role === 'POLICIER' ? 'Changer en VOLEUR' : 'Changer en POLICIER';
+                changeRoleBtn.style.marginLeft = '10px';
+                changeRoleBtn.style.padding = '3px 8px';
+                changeRoleBtn.style.fontSize = '12px';
+                changeRoleBtn.onclick = () => {
+                    const newRole = res.role === 'POLICIER' ? 'VOLEUR' : 'POLICIER';
+                    this.changePlayerRole(res.id, newRole);
+                };
+                li.appendChild(changeRoleBtn);
             }
-                                
-            playerList.appendChild(li);
-        });
+        }
+        else {
+            li.innerHTML = `<b> - ${res.id}</b> ${res.ttl ? `<span style="color: red;">(Expire dans ${res.ttl})</span>` : ''}`;
+        }
+                            
+        playerList.appendChild(li);
+    });
     }
 
     // Méthode pour changer le rôle d'un joueur
@@ -259,6 +277,41 @@ class GameService {
         );
 
         return lines.join('<br>');
+    }
+
+    // Vérifier le statut du jeu (si tous les voleurs sont capturés)
+    private checkGameStatus(): void {
+        const token = localStorage.getItem('adminToken');
+        
+        if (!token) {
+            console.error("Pas de token d'authentification disponible");
+            return;
+        }
+        
+        fetch(`${apiPath}/game/game-status`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(statusData => {
+            // Si tous les voleurs sont capturés, déclencher la fin de partie
+            if (statusData.gameOver) {
+                console.log("Tous les voleurs sont capturés - fin de partie automatique");
+                this.stopPolling(); // Arrêter le polling
+                endGame();
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la vérification du statut du jeu:', error);
+        });
     }
 
 }
