@@ -13,6 +13,13 @@
       <p>{{ positionStore.error }}</p>
       <button @click="retryGeolocation">Réessayer</button>
     </div>
+    <div v-if="gameService.gameOver.value" class="game-over-overlay">
+      <div class="game-over-modal">
+        <h2>Partie Terminée</h2>
+        <p>{{ gameService.gameOverMessage.value }}</p>
+        <button @click="returnToMenu" class="btn btn-primary">Retour au menu</button>
+      </div>
+    </div>
 
     <div v-else id="map-container" style="position: relative;">
       <div id="map" class="map" ref="mapElement"></div>
@@ -85,6 +92,7 @@ import gameService from '@/services/game'
 import { usePositionStore } from '@/stores/position'
 import CatchModal from '@/components/CatchModal.vue'
 import notificationService from '@/services/notifications'
+import { useRouter } from 'vue-router'
 
 let mymap: LeafletMap | null = null
 let markers: Record<string, Marker> = {}
@@ -122,6 +130,25 @@ export default defineComponent({
       image?: string;
     } | null>(null)
     const wakeLock = ref<WakeLockSentinel | null>(null)
+    const router = useRouter()
+
+    watch(() => gameService.gameOver.value, (isGameOver) => {
+      if (isGameOver) {
+        if (ttlInterval) clearInterval(ttlInterval)
+        if (updateInterval) clearInterval(updateInterval)
+        if (playerCheckInterval) clearInterval(playerCheckInterval)
+
+        positionStore.stopTracking()
+        releaseWakeLock()
+      }
+    })
+
+    const returnToMenu = () => {
+      gameService.gameOver.value = false
+      gameService.gameOverMessage.value = ''
+      router.push('/')
+    }
+    
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
@@ -483,6 +510,7 @@ export default defineComponent({
       }, 1000)
       
       updateInterval = setInterval(async () => {
+        await gameService.checkGameStatus()
         await gameService.fetchZRR() // check ZRR just in case
         await gameService.fetchResources()
         updateMap()
@@ -584,7 +612,7 @@ export default defineComponent({
         }
       ).addTo(mymap)
     }
-    
+
     return {
       mapElement,
       nearbyVitrine,
@@ -606,6 +634,7 @@ export default defineComponent({
       selectedVoleur,
       confirmCapture,
       cancelCapture,
+      returnToMenu,
     }
   }
 })
@@ -835,5 +864,47 @@ export default defineComponent({
 
 .confirm-button:hover {
   background: #cc3333;
+}
+
+.game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.game-over-modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.game-over-modal h2 {
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.game-over-modal button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.game-over-modal button:hover {
+  background: #2980b9;
 }
 </style>

@@ -79,6 +79,19 @@ export class NotificationService {
       tag: 'vitrine-action'
     })
   }
+
+  showGameOverNotification(message: string): void {
+    const defaultOptions: NotificationOptions = {
+      icon: '/icon-192x192.png',
+      badge: '/favicon.ico',
+      body: message,
+      tag: 'game-over'
+    }
+
+    if(this.permission === 'granted') {
+      new Notification('Fin de la partie', defaultOptions)
+    }
+  }
 }
 
 export default NotificationService.getInstance()

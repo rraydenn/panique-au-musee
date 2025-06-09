@@ -44,6 +44,8 @@ class GameService {
         score: 0,
         // captured: false
     })
+    gameOver = ref<boolean>(false);
+    gameOverMessage = ref<string>('');
 
     private lastFetchTime: number = 0;
     private readonly FETCH_DEBOUNCE_MS = 1000;
@@ -470,6 +472,42 @@ class GameService {
         } catch (error) {
             console.error('Error checking nearby voleurs:', error);
             return null;
+        }
+    }
+
+    async checkGameStatus() {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                this.debug('warn', 'checkGameStatus', 'No token available, skipping game status check');
+                return;
+            }
+
+            const response = await fetch(`${API_CONFIG.GAME_BASE_URL}/game-status`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Origin': window.location.origin
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                this.debug('error', 'checkGameStatus', `Failed to check game status: ${response.status} ${response.statusText}`, errorText);
+                return;
+            }
+
+            const result = await response.json();
+
+            const wasGameOver = this.gameOver.value;
+            this.gameOver.value = result.gameOver;
+            this.gameOverMessage.value = result.message || '';
+
+            if (result.gameOver  && !wasGameOver) {
+                //this.debug('info', 'checkGameStatus', 'Game has ended!', result);
+                notificationService.showGameOverNotification(this.gameOverMessage.value);
+            }
+        } catch (error) {
+            this.debug('error', 'checkGameStatus', "Error checking game status:", error);
         }
     }
 }
