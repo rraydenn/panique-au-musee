@@ -291,61 +291,63 @@ export default defineComponent({
       }, 2000)
     }
 
-    const setupMapPressEvents = () => {
-      if (!mymap) return
+     const setupMapPressEvents = () => {
+      if (!mymap) return;
 
-      let isLongPress = false
+      let isLongPress = false;
 
-      // Événements pour desktop (souris)
-      mymap.on('mousedown', (event: LeafletMouseEvent) => {
-        if (!calibrationMode.value) return
+      const startLongPress = (event: LeafletMouseEvent) => {
+        if (!calibrationMode.value) return;
 
-        isLongPress = false
+        isLongPress = false;
         longPressTimeout.value = window.setTimeout(() => {
-          isLongPress = true
-          handleLongPress(event)
-        }, 1000)
-      })
+          isLongPress = true;
+          handleLongPress(event);
+        }, 1000);
+      };
 
-      mymap.on('mouseup', () => {
+      const cancelLongPress = () => {
         if (longPressTimeout.value) {
-          clearTimeout(longPressTimeout.value)
-          longPressTimeout.value = null
+          clearTimeout(longPressTimeout.value);
+          longPressTimeout.value = null;
         }
-      })
+      };
 
-      mymap.on('mousemove', () => {
-        if (longPressTimeout.value) {
-          clearTimeout(longPressTimeout.value)
-          longPressTimeout.value = null
-        }
-      })
+      // Mouse (Desktop)
+      mymap.on('mousedown', (event: LeafletMouseEvent) => {
+        if (event.originalEvent.button !== 0) return; // only left-click
+        startLongPress(event);
+      });
 
-      // Événements pour mobile - utilisation de l'événement click avec vérification
-      mymap.on('click', (event: LeafletMouseEvent) => {
-        if (!calibrationMode.value) return
-        
-        // Ignorer si c'est un vrai clic après mouseup (desktop)
+      mymap.on('mouseup', cancelLongPress);
+      mymap.on('mousemove', cancelLongPress);
+
+      // Touch (Mobile)
+      mymap.getContainer().addEventListener('touchstart', (e) => {
+        if (!mymap) return;
+        const touchEvent = e as TouchEvent;
+        const touch = touchEvent.touches[0];
+        const mockMouseEvent = {
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+          target: touch.target
+        } as MouseEvent;
+        const point = mymap.mouseEventToLatLng(mockMouseEvent);
+        const event = { latlng: point } as LeafletMouseEvent;
+        startLongPress(event);
+      });
+
+      mymap.getContainer().addEventListener('touchend', cancelLongPress);
+      mymap.getContainer().addEventListener('touchmove', cancelLongPress);
+      mymap.getContainer().addEventListener('touchcancel', cancelLongPress);
+
+      mymap.on('click', () => {
         if (isLongPress) {
-          isLongPress = false
-          return
+          isLongPress = false;
         }
+      });
 
-        // Pour mobile uniquement - détecter si c'est un appareil tactile
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-          longPressTimeout.value = window.setTimeout(() => {
-            handleLongPress(event)
-          }, 1000)
-        }
-      })
-
-      // Annuler sur mouvement (mobile)
-      mymap.on('drag', () => {
-        if (longPressTimeout.value) {
-          clearTimeout(longPressTimeout.value)
-          longPressTimeout.value = null
-        }
-      })
+      mymap.on('dragstart', cancelLongPress);
     }
     
     const updateMap = () => {
