@@ -243,11 +243,6 @@ class DAO {
 		// Filtrer pour n'obtenir que les voleurs
 		const voleurs = this.resources.filter(r => r.role === 'VOLEUR');
 		
-		// Si aucun voleur n'existe dans le jeu, la partie n'est pas terminée
-		if (voleurs.length === 0) {
-			return false;
-		}
-		
 		// Vérifier si tous les voleurs sont capturés
 		let allCaptured = voleurs.every(voleur => voleur.captured === true);
 
@@ -269,8 +264,6 @@ class DAO {
 			timestamp: new Date().toISOString()
 		};
 		
-		// Réinitialiser les ressources mais garder la ZRR
-		this.resources = [];
 		this.endGameBool = true;
 		
 		return { success: true, message: "Partie terminée", stats: gameStats };
