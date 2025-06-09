@@ -294,10 +294,15 @@ export default defineComponent({
     const setupMapPressEvents = () => {
       if (!mymap) return
 
+      let isLongPress = false
+
+      // Événements pour desktop (souris)
       mymap.on('mousedown', (event: LeafletMouseEvent) => {
         if (!calibrationMode.value) return
 
+        isLongPress = false
         longPressTimeout.value = window.setTimeout(() => {
+          isLongPress = true
           handleLongPress(event)
         }, 1000)
       })
@@ -310,6 +315,32 @@ export default defineComponent({
       })
 
       mymap.on('mousemove', () => {
+        if (longPressTimeout.value) {
+          clearTimeout(longPressTimeout.value)
+          longPressTimeout.value = null
+        }
+      })
+
+      // Événements pour mobile - utilisation de l'événement click avec vérification
+      mymap.on('click', (event: LeafletMouseEvent) => {
+        if (!calibrationMode.value) return
+        
+        // Ignorer si c'est un vrai clic après mouseup (desktop)
+        if (isLongPress) {
+          isLongPress = false
+          return
+        }
+
+        // Pour mobile uniquement - détecter si c'est un appareil tactile
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+          longPressTimeout.value = window.setTimeout(() => {
+            handleLongPress(event)
+          }, 1000)
+        }
+      })
+
+      // Annuler sur mouvement (mobile)
+      mymap.on('drag', () => {
         if (longPressTimeout.value) {
           clearTimeout(longPressTimeout.value)
           longPressTimeout.value = null
@@ -533,11 +564,6 @@ export default defineComponent({
           await gameService.fetchResources()
           updateActiveVitrinesCount()
         } else if (currentPosition && mymap) {    
-          gameService.localPlayer.position = {
-            latitude: currentPosition.latitude,
-            longitude: currentPosition.longitude
-          }
-          // Update map with initial game data
           updateMap()
         }
       }, { immediate: true })
