@@ -79,7 +79,7 @@
       <p>Score: {{ gameService.localPlayer.score }}</p>
       <p>Vitrines actives: {{ activeVitrinesCount }}</p>
     </div>
-    <TouchDebug />
+    <!--<TouchDebug />-->
   </section>
 </template>
 
