@@ -2,6 +2,7 @@ import { LatLng } from "leaflet";
 import { ref, reactive } from "vue";
 import { usePositionStore } from "@/stores/position";
 import { API_CONFIG } from "@/config/api";
+import notificationService from "@/services/notifications";
 
 export interface Position {
     latitude: number;
@@ -40,7 +41,8 @@ class GameService {
         username: '',
         position: { latitude: 45.78200, longitude: 4.86550 },
         image: '',
-        score: 0
+        score: 0,
+        // captured: false
     })
 
     private positionUpdateInterval: number | null = null;
@@ -256,6 +258,10 @@ class GameService {
             this.players = newPlayers;
 
             const localPlayerData = resources.find((r: any) => r.role !== 'vitrine' && r.id === this.localPlayer.id);
+            /*if (localPlayerData && localPlayerData.captured && !this.localPlayer.captured) {
+                notificationService.showCaptureNotification('', false)
+            }*/ // ajouter ou modifier pour la capture
+
             if (localPlayerData) {
                 this.localPlayer.id = localPlayerData.id;
                 this.localPlayer.role = localPlayerData.role;
@@ -263,6 +269,7 @@ class GameService {
                 this.localPlayer.position = localPlayerData.position;
                 this.localPlayer.image = localPlayerData.image || '';
                 this.localPlayer.score = localPlayerData.showcases || 0;
+                //this.localPlayer.captured = localPlayerData.captured || false;
             }
 
             const newVitrines = resources
