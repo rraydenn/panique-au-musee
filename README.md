@@ -38,7 +38,8 @@ Fini (màj: 16/04)
 ## TP4
 
 Fini (màj 23/04)
-revoir jasmine mais tout est tester au niveau de la page de log et admin
+revoir jasmine (modification en encore possible)
+- Possibilité de changer les rôles et aussi de mettre fin à la partie
 
 ## TP5
 
@@ -50,4 +51,8 @@ Fini (màj 26/05)
 
 ## TP7
 
-En cours (25/05)
+Fini (màj 04/06)
+
+## TP8
+
+en cours (màj 08/06)

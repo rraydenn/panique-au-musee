@@ -1,6 +1,8 @@
 import { updateMap } from './map';
-import { drawZrr} from './mapState';
+import { drawZrr, fetchAndDisplayZrr, resetZrrState} from './mapState';
 import { apiPath } from './config';
+import { endGame } from './endGame'; // Importer la fonction endGame
+
 
 // Initialisation des écouteurs d'événements
 function initListeners(mymap: any): void {
@@ -37,7 +39,7 @@ function initListeners(mymap: any): void {
         sendZrr(mymap);
     });
 
-    // 
+    // Écouteur pour le bouton d'ajout de vitrine
     (document.getElementById("addVitrineButton") as HTMLButtonElement).addEventListener("click", () => {
         // Mettre à jour les champs du formulaire avec les valeurs actuelles de la vitrine
         const latInputVitrine = document.getElementById('vitrineLat') as HTMLInputElement;
@@ -48,6 +50,13 @@ function initListeners(mymap: any): void {
     // Écouteur pour le bouton de définition du TTL
     (document.getElementById("setTtlButton") as HTMLButtonElement).addEventListener("click", () => {
         setTtl();
+    });
+
+    // Ajouter un gestionnaire d'événement pour le bouton "End Game"
+    document.getElementById('endGameButton').addEventListener('click', function() {
+        if (confirm("Êtes-vous sûr de vouloir mettre fin à la partie ? Cette action est irréversible.")) {
+            endGame();
+        }
     });
 }
 
@@ -141,8 +150,9 @@ function sendZrr(mymap: any): void {
         
         if (response.ok) {
             alert("La ZRR a été définie avec succès !");
-            drawZrr(mymap, [zrrData.point1[0], zrrData.point1[1]], [zrrData.point2[0], zrrData.point2[1]]);
+            fetchAndDisplayZrr(mymap);
         } else {
+            resetZrrState();
             response.text().then(text => {
                 console.error("Erreur serveur:", text);
                 alert(`Erreur lors de la définition de la ZRR: ${response.status} ${response.statusText}`);
@@ -152,6 +162,7 @@ function sendZrr(mymap: any): void {
         }
     })
     .catch(error => {
+        resetZrrState();
         // Restaurer le bouton en cas d'erreur
         sendButton.disabled = false;
         sendButton.textContent = originalText;
