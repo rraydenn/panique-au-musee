@@ -79,7 +79,7 @@
       <p>Score: {{ gameService.localPlayer.score }}</p>
       <p>Vitrines actives: {{ activeVitrinesCount }}</p>
     </div>
-    <TouchDebugger />
+    <TouchDebug />
   </section>
 </template>
 
@@ -94,7 +94,7 @@ import { usePositionStore } from '@/stores/position'
 import CatchModal from '@/components/CatchModal.vue'
 import notificationService from '@/services/notifications'
 import { useRouter } from 'vue-router'
-import TouchDebugger from './TouchDebug.vue'
+import TouchDebug from './TouchDebug.vue'
 
 let mymap: LeafletMap | null = null
 let markers: Record<string, Marker> = {}
@@ -108,7 +108,8 @@ let playerCheckInterval: number | null = null
 export default defineComponent({
   name: 'MyMap',
   components: {
-    CatchModal
+    CatchModal,
+    TouchDebug
   },
   props: {
     userRole: {
