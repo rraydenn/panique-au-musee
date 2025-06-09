@@ -246,6 +246,10 @@ class DAO {
 		// Vérifier si tous les voleurs sont capturés
 		let allCaptured = voleurs.every(voleur => voleur.captured === true);
 
+		if (voleurs.length === 0) {
+			allCaptured = false; // Si aucun voleur n'est présent, la partie n'est pas terminée
+		}
+
 		if (this.endGameBool) {
 			allCaptured = true;
 		}
