@@ -294,91 +294,105 @@ export default defineComponent({
       }, 2000)
     }
 
-     const setupMapPressEvents = () => {
-  if (!mymap) return;
+    const setupMapPressEvents = () => {
+      if (!mymap) return;
 
-  let isLongPress = false;
-  let startPosition = { x: 0, y: 0 };
-  const MOVE_THRESHOLD = 10; // pixels
+      let isLongPress = false;
+      let startPosition = { x: 0, y: 0 };
+      const MOVE_THRESHOLD = 10; // pixels
 
-  const startLongPress = (event: LeafletMouseEvent) => {
-    if (!calibrationMode.value) return;
+      const startLongPress = (event: LeafletMouseEvent) => {
+        if (!calibrationMode.value) return;
 
-    isLongPress = false;
-    longPressTimeout.value = window.setTimeout(() => {
-      isLongPress = true;
-      handleLongPress(event);
-    }, 1000);
-  };
+        isLongPress = false;
+        longPressTimeout.value = window.setTimeout(() => {
+          isLongPress = true;
+          handleLongPress(event);
+        }, 1000);
+      };
 
-  const cancelLongPress = () => {
-    if (longPressTimeout.value) {
-      clearTimeout(longPressTimeout.value);
-      longPressTimeout.value = null;
-    }
-  };
+      const cancelLongPress = () => {
+        if (longPressTimeout.value) {
+          clearTimeout(longPressTimeout.value);
+          longPressTimeout.value = null;
+        }
+      };
 
-  // Mouse (Desktop)
-  mymap.on('mousedown', (event: LeafletMouseEvent) => {
-    if (event.originalEvent.button !== 0) return; // only left-click
-    startLongPress(event);
-  });
+      // Mouse (Desktop)
+      mymap.on('mousedown', (event: LeafletMouseEvent) => {
+        if (event.originalEvent.button !== 0) return; // only left-click
+        startLongPress(event);
+      });
 
-  mymap.on('mouseup', cancelLongPress);
-  mymap.on('mousemove', cancelLongPress);
+      mymap.on('mouseup', cancelLongPress);
+      mymap.on('mousemove', cancelLongPress);
 
-  // Touch (Mobile) - Fixed handling
-  mymap.getContainer().addEventListener('touchstart', (e) => {
-    if (!mymap || !calibrationMode.value) return;
-    
-    // Only handle single touch
-    if (e.touches.length !== 1) return;
-    
-    const touchEvent = e as TouchEvent;
-    const touch = touchEvent.touches[0] ? touchEvent.touches[0] : touchEvent.changedTouches[0];
-    
-    // Store starting position
-    startPosition = { x: touch.clientX, y: touch.clientY };
-    
-    const mockMouseEvent = {
-      clientX: touch.clientX,
-      clientY: touch.clientY,
-      target: touch.target
-    } as MouseEvent;
-    const point = mymap.mouseEventToLatLng(mockMouseEvent);
-    const event = { latlng: point } as LeafletMouseEvent;
-    startLongPress(event);
-  });
+      // Touch (Mobile) - Declare handlers first
+      const touchStartHandler = (e: TouchEvent) => {
+        if (!mymap || !calibrationMode.value) return;
+        
+        // Handle single touch only
+        if (e.touches.length === 1) {
+          e.preventDefault(); // Prevent default touch behavior
+          e.stopPropagation(); // Stop event bubbling
+          
+          const touch = e.touches[0];
+          startPosition = { x: touch.clientX, y: touch.clientY };
+          
+          const mockMouseEvent = {
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            target: touch.target
+          } as MouseEvent;
+          const point = mymap.mouseEventToLatLng(mockMouseEvent);
+          const event = { latlng: point } as LeafletMouseEvent;
+          startLongPress(event);
+        }
+      };
 
-  mymap.getContainer().addEventListener('touchend', (e) => {
-    if (e.touches.length === 0) {
-      cancelLongPress();
-    }
-  });
+      const touchEndHandler = (e: TouchEvent) => {
+        if (e.touches.length === 0) {
+          cancelLongPress();
+        }
+      };
 
-  mymap.getContainer().addEventListener('touchmove', (e) => {
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      const deltaX = Math.abs(touch.clientX - startPosition.x);
-      const deltaY = Math.abs(touch.clientY - startPosition.y);
-      
-      // Only cancel if movement is significant
-      if (deltaX > MOVE_THRESHOLD || deltaY > MOVE_THRESHOLD) {
+      const touchMoveHandler = (e: TouchEvent) => {
+        if (e.touches.length === 1) {
+          const touch = e.touches[0];
+          const deltaX = Math.abs(touch.clientX - startPosition.x);
+          const deltaY = Math.abs(touch.clientY - startPosition.y);
+          
+          if (deltaX > MOVE_THRESHOLD || deltaY > MOVE_THRESHOLD) {
+            cancelLongPress();
+          }
+        }
+      };
+
+      const touchCancelHandler = () => {
         cancelLongPress();
-      }
+      };
+
+      // Now remove any existing listeners (handlers are declared above)
+      const mapContainer = mymap.getContainer();
+      mapContainer.removeEventListener('touchstart', touchStartHandler);
+      mapContainer.removeEventListener('touchend', touchEndHandler);
+      mapContainer.removeEventListener('touchmove', touchMoveHandler);
+      mapContainer.removeEventListener('touchcancel', touchCancelHandler);
+
+      // Add new listeners
+      mapContainer.addEventListener('touchstart', touchStartHandler, { passive: false });
+      mapContainer.addEventListener('touchend', touchEndHandler, { passive: true });
+      mapContainer.addEventListener('touchmove', touchMoveHandler, { passive: true });
+      mapContainer.addEventListener('touchcancel', touchCancelHandler, { passive: true });
+
+      mymap.on('click', () => {
+        if (isLongPress) {
+          isLongPress = false;
+        }
+      });
+
+      mymap.on('dragstart', cancelLongPress);
     }
-  });
-
-  mymap.getContainer().addEventListener('touchcancel', cancelLongPress);
-
-  mymap.on('click', () => {
-    if (isLongPress) {
-      isLongPress = false;
-    }
-  });
-
-  mymap.on('dragstart', cancelLongPress);
-}
     
     const updateMap = () => {
       if (!mymap) return
