@@ -346,8 +346,6 @@ export default defineComponent({
           isLongPress = false;
         }
       });
-
-      mymap.on('dragstart', cancelLongPress);
     }
     
     const updateMap = () => {
