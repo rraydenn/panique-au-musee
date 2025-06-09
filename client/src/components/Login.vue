@@ -49,28 +49,11 @@ export default {
             const token = authHeader.substring(7)
             localStorage.setItem('token', token)
             localStorage.setItem('login', loginValue.value)
+            emit('login-success', { token, login: loginValue.value })
           }
         } else {
           emit('login-error', "Nom d'utilisateur ou mot de passe incorrect.")
           return
-        }
-
-        const getResponse = await fetch(`${API_CONFIG.AUTH_BASE_URL}/users/${loginValue.value}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-            'Origin': window.location.origin,
-          }
-        });
-
-        if (getResponse.ok) {
-          const userData = await getResponse.json()
-          localStorage.setItem('userRole', userData.species || 'unknown')
-          localStorage.setItem('userImage', userData.image || '')
-          emit('login-success', userData)
-        } else {
-          console.error('Erreur lors de la récupération des données utilisateur')
         }
       } catch (error) {
         console.error('Erreur lors de la connexion:', error)

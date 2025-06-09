@@ -27,6 +27,7 @@ const handleLoginSuccess = (token: string) => {
   logged.value = true
   loginError.value = ''
   userRole.value = localStorage.getItem('userRole') || ''
+  login.value = localStorage.getItem('login') || ''
 }
 
 const handleLoginError = (error: string) => {
@@ -65,7 +66,7 @@ const logout = async () => {
       <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
 
       <div class="wrapper">
-        <HelloWorld :msg="`Bienvenue ${userRole} !`" />
+        <HelloWorld :msg="`Bienvenue ${login} !`" />
 
         <nav>
           <RouterLink to="/">Home</RouterLink>

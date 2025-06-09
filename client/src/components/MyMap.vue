@@ -470,73 +470,61 @@ export default defineComponent({
 
       document.addEventListener('visibilitychange', handleVisibilityChange)
 
-      watch(() => positionStore.position, async (currentPosition) => {
-        if (currentPosition) {
-          // Initialize Leaflet map
-          if(!mymap) {
-            await initializeMap()
-            setupMapPressEvents()
+      const userId = localStorage.getItem('login') || 'user-123'
+      await gameService.init(userId, props.userRole)
 
-          }
-          
-          // Initialize game data with mock user ID
-          const userId = localStorage.getItem('login') || 'user-123'
-          
+      if (ttlInterval) clearInterval(ttlInterval)
+      if (updateInterval) clearInterval(updateInterval)
+      if (playerCheckInterval) clearInterval(playerCheckInterval)
+
+      ttlInterval = setInterval(() => {
+        gameService.decreaseTTL()
+        updateMap()
+      }, 1000)
+      
+      updateInterval = setInterval(async () => {
+        await gameService.fetchZRR() // check ZRR just in case
+        await gameService.fetchResources()
+        updateMap()
+        updateActiveVitrinesCount()
+        checkVitrineProximity()
+      }, 5000)
+
+      if (props.userRole === 'POLICIER') {
+        // Check for nearby players every 5 seconds
+        playerCheckInterval = setInterval(() => {
+          checkPlayerProximity()
+        }, 5000)
+      }
+
+      watch(() => positionStore.position, async (currentPosition) => {
+        if (currentPosition && !mymap) {
+          await initializeMap()
+          setupMapPressEvents()
+          updateMap()
+          await gameService.fetchResources()
+          updateActiveVitrinesCount()
+        } else if (currentPosition && mymap) {    
           gameService.localPlayer.position = {
             latitude: currentPosition.latitude,
             longitude: currentPosition.longitude
           }
-
-          await gameService.init(userId, props.userRole)
-          
           // Update map with initial game data
           updateMap()
-          await gameService.fetchResources()
-          updateActiveVitrinesCount()
-
-          if (ttlInterval) {
-            clearInterval(ttlInterval)
-          }
-          if (updateInterval) {
-            clearInterval(updateInterval)
-          }
-          if (playerCheckInterval) {
-            clearInterval(playerCheckInterval)
-          }
-
-          // Mise à jour locale du TTL toutes les 1s
-          ttlInterval = setInterval(() => {
-            gameService.decreaseTTL()
-            updateMap()
-          }, 1000)
-          
-          // Set interval to update map regularly
-          updateInterval = setInterval(async () => {
-            await gameService.fetchResources()
-            updateMap()
-            updateActiveVitrinesCount()
-            checkVitrineProximity()
-          }, 5000)
-
-          if (props.userRole === 'POLICIER') {
-            // Check for nearby players every 5 seconds
-            playerCheckInterval = setInterval(() => {
-              checkPlayerProximity()
-            }, 5000)
-          }
-
         }
       }, { immediate: true })
     })
 
     // Cleanup on unmount
       onBeforeUnmount(() => {
-        positionStore.stopTracking()
-        document.removeEventListener('visibilitychange', handleVisibilityChange)
-        releaseWakeLock()
         if (ttlInterval) clearInterval(ttlInterval)
         if (updateInterval) clearInterval(updateInterval)
         if (playerCheckInterval) clearInterval(playerCheckInterval)
+
+        positionStore.stopTracking()
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+        releaseWakeLock()
+
         if (mymap) {
           mymap.remove()
           mymap = null
@@ -545,6 +533,7 @@ export default defineComponent({
           clearTimeout(longPressTimeout.value)
           longPressTimeout.value = null
         }
+
         gameService.cleanup()
       })
     

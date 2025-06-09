@@ -45,6 +45,9 @@ class GameService {
         // captured: false
     })
 
+    private lastFetchTime: number = 0;
+    private readonly FETCH_DEBOUNCE_MS = 1000;
+
     private positionUpdateInterval: number | null = null;
     private DEBUG = true; // Enable/disable debug mode
 
@@ -218,6 +221,12 @@ class GameService {
 
     async fetchResources() {
         //this.debug('info', 'fetchResources', 'Fetching game resources from server');
+        const now = Date.now();
+        if( now - this.lastFetchTime < this.FETCH_DEBOUNCE_MS) {
+            //this.debug('warn', 'fetchResources', `Fetch resources skipped due to debounce: ${this.FETCH_DEBOUNCE_MS}ms`);
+            return;
+        }
+        this.lastFetchTime = now;
         
         try {
             const token = localStorage.getItem('token');
@@ -265,6 +274,7 @@ class GameService {
             if (localPlayerData) {
                 this.localPlayer.id = localPlayerData.id;
                 this.localPlayer.role = localPlayerData.role;
+                localStorage.setItem('userRole', localPlayerData.role);
                 this.localPlayer.username = localPlayerData.username || localPlayerData.id;
                 this.localPlayer.position = localPlayerData.position;
                 this.localPlayer.image = localPlayerData.image || '';
