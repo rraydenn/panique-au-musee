@@ -4,8 +4,7 @@ export default {
 
   // Array of filepaths (and globs) relative to spec_dir to include and exclude
   spec_files: [
-    "**/*[sS]pec.?(m)js",
-    "!**/*nospec.js"  // Exclude files with 'nospec' in their name
+    "test/*functional.spec.js"  // Chercher dans le dossier test/
   ],
 
   // Array of filepaths (and globs) relative to spec_dir to include before jasmine specs
