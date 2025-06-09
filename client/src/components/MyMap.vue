@@ -332,7 +332,7 @@ export default defineComponent({
     if (e.touches.length !== 1) return;
     
     const touchEvent = e as TouchEvent;
-    const touch = touchEvent.touches[0];
+    const touch = touchEvent.touches[0] ? touchEvent.touches[0] : touchEvent.changedTouches[0];
     
     // Store starting position
     startPosition = { x: touch.clientX, y: touch.clientY };
