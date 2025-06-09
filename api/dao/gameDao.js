@@ -275,7 +275,43 @@ class DAO {
 		
 		return { success: true, message: "Partie terminée", stats: gameStats };
 	}
-	
+
+	// Réinitialiser le jeu pour une nouvelle partie
+	resetGame() {
+		// Réinitialiser l'indicateur de fin de partie
+		this.endGameBool = false;
+		
+		// Conserver les joueurs mais réinitialiser leurs statistiques
+		this.resources = this.resources.map(resource => {
+			// Conserver uniquement les joueurs (voleurs et policiers)
+			if (resource.role === 'VOLEUR' || resource.role === 'POLICIER') {
+				const resetResource = {
+					...resource,
+					position: { latitude: 45.78207, longitude: 4.86559 } // Position par défaut (Nautibus)
+				};
+				
+				// Réinitialiser les statistiques spécifiques aux rôles
+				if (resource.role === 'POLICIER') {
+					resetResource.terminated = 0;
+				} else if (resource.role === 'VOLEUR') {
+					resetResource.captured = false;
+				}
+				
+				// Réinitialiser le compteur de vitrines
+				resetResource.showcases = 0;
+				
+				return resetResource;
+			}
+			return null; // Supprimer toutes les autres ressources (vitrines, etc.)
+		}).filter(resource => resource !== null); // Filtrer les éléments null
+		
+		return { 
+			success: true, 
+			message: "Jeu réinitialisé pour une nouvelle partie",
+			playersCount: this.resources.length
+		};
+	}
+		
 }
 
 export default new DAO();  // Export du DAO pour l'utiliser dans le serveur
