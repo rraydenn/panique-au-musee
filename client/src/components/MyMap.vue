@@ -36,10 +36,10 @@
       <div v-if="nearbyVitrine" class="vitrine-overlay">
         <h3>Vitrine Trouvée!</h3>
         <p>Vous êtes à proximité d'une vitrine.</p>
-        <p v-if="userRole === 'VOLEUR'">Voler cette vitrine?</p>
+        <p v-if="gameService.localPlayer.role === 'VOLEUR'">Voler cette vitrine?</p>
         <p v-else>Sécuriser cette vitrine?</p>
         <button @click="interactWithVitrine">
-          {{  userRole === 'VOLEUR' ? 'Voler' : 'Sécuriser' }}
+          {{  gameService.localPlayer.role === 'VOLEUR' ? 'Voler' : 'Sécuriser' }}
         </button>
       </div>
       <div v-if="actionMessage" class="vitrine-overlay">
