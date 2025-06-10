@@ -58,6 +58,13 @@ function initListeners(mymap: any): void {
             endGame();
         }
     });
+
+    // Ajouter un gestionnaire d'événement pour le bouton "End Game"
+    document.getElementById('resetGameButton').addEventListener('click', function() {
+        if (confirm("Êtes-vous sûr de vouloir réinitialiser la partie ? Cette action est irréversible.")) {
+            resetGame();
+        }
+    });
 }
 
 // Mettre à jour la carte à partir des valeurs du formulaire
@@ -287,6 +294,27 @@ function setTtl(): void {
         console.error('Erreur:', error);
         alert("Erreur de connexion au serveur");
     });
+}
+
+function resetGame(): void {
+ const token = localStorage.getItem('adminToken');
+    
+    fetch(`${apiPath}/admin/reset-game`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `${token}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur lors de la réinitialisation de la partie');
+        } else {
+            alert("La partie a été réinitialisée avec succès !");
+            window.location.reload();
+        }
+        return response.json();
+    })
 }
 
 export default initListeners;

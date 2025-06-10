@@ -86,6 +86,6 @@ function displayGameEndStats(stats: any) {
     document.getElementById('closeStatsPopup').addEventListener('click', function() {
         document.body.removeChild(overlay);
         // Rafraîchir la page pour réinitialiser l'affichage après la fin de la partie
-        window.location.reload();
+        //window.location.reload();
     });
 }
