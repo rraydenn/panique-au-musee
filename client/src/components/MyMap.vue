@@ -69,13 +69,13 @@
         v-if="catchModalVisible"
         :show="catchModalVisible"
         :caught-player="selectedVoleur"
-        :user-role="userRole"
+        :user-role="gameService.localPlayer.role"
         @close="closeCatchModal"
       />
     </div>
 
     <div class="game-stats">
-      <p>Role: {{ userRole }}</p>
+      <p>Role: {{ gameService.localPlayer.role || userRole }}</p>
       <p>Score: {{ gameService.localPlayer.score }}</p>
       <p>Vitrines actives: {{ activeVitrinesCount }}</p>
     </div>
@@ -199,7 +199,7 @@ export default defineComponent({
 
     const checkPlayerProximity = async () => {
       //fonction pour vérifier la proximité des joueurs
-      if (props.userRole !== 'POLICIER') return;
+      if (gameService.localPlayer.role !== 'POLICIER') return;
 
       try {
         const nearbyVoleurs = await gameService.checkNearbyVoleurs();
@@ -440,7 +440,7 @@ export default defineComponent({
       
       // Add other players of same role
       gameService.players
-        .filter(p => p.role === props.userRole)
+        .filter(p => p.role === gameService.localPlayer.role)
         .forEach(player => {
           const pos = new LatLng(player.position.latitude, player.position.longitude)
           const icon = new DivIcon({
@@ -546,7 +546,7 @@ export default defineComponent({
       if (nearbyVitrine.value) {
         await gameService.interactWithVitrine(nearbyVitrine.value)
 
-        const action = props.userRole === 'VOLEUR' ? 'stolen' : 'secured'
+        const action = gameService.localPlayer.role === 'VOLEUR' ? 'stolen' : 'secured'
         notificationService.showVitrineNotification(action)
 
         nearbyVitrine.value = null
@@ -575,6 +575,7 @@ export default defineComponent({
       document.addEventListener('visibilitychange', handleVisibilityChange)
 
       const userId = localStorage.getItem('login') || 'user-123'
+      console.log('Initializing game for user:', userId, 'with role:', props.userRole)
       await gameService.init(userId, props.userRole)
 
       if (ttlInterval) clearInterval(ttlInterval)

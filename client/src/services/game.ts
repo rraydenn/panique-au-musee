@@ -25,6 +25,7 @@ export interface Player extends Resource {
     username: string;
     score?: number;
     image?: string;
+    captured?: boolean;
 }
 
 export interface ZRR {
@@ -275,13 +276,18 @@ class GameService {
 
             if (localPlayerData) {
                 this.localPlayer.id = localPlayerData.id;
+                if (this.localPlayer.role !== localPlayerData.role) {
+                    this.debug('info', 'fetchResources', `Role changed for local player: ${this.localPlayer.role} -> ${localPlayerData.role}`);
+                    localStorage.setItem('userRole', localPlayerData.role);
+                }
                 this.localPlayer.role = localPlayerData.role;
-                localStorage.setItem('userRole', localPlayerData.role);
                 this.localPlayer.username = localPlayerData.username || localPlayerData.id;
                 this.localPlayer.position = localPlayerData.position;
                 this.localPlayer.image = localPlayerData.image || '';
                 this.localPlayer.score = localPlayerData.showcases || 0;
-                //this.localPlayer.captured = localPlayerData.captured || false;
+                if (localPlayerData.role === 'voleur') {
+                    this.localPlayer.captured = localPlayerData.captured || false;
+                }
             }
 
             const newVitrines = resources
