@@ -200,6 +200,17 @@ class DAO {
 		return { success: true, zrr: this.zrr };
 	}
 
+	// Supprimer une ressource par son ID
+	removeResource(id) {
+		const resourceIndex = this.resources.findIndex(r => r.id === id);
+		if (resourceIndex === -1) {
+			return { error: 'Ressource introuvable' };
+		}
+		
+		const removedResource = this.resources.splice(resourceIndex, 1)[0];
+		return { success: true, message: `Ressource ${id} supprimée avec succès`, removedResource };
+	}
+
 	// Vérifier si une position est dans la ZRR
 	isPositionInZRR(latitude, longitude) {
 		if (!this.zrr) {

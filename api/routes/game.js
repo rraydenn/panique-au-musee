@@ -87,4 +87,18 @@ router.get("/game-status", (req, res) => {
     });
 });
 
+// 8. Supprimer une ressource par son ID
+router.delete("/resource/:id", (req, res) => {
+    const { id } = req.params;
+    
+    if (!id) {
+        return res.status(400).json({ error: "L'identifiant de la ressource est requis" });
+    }
+    
+    const result = DAO.removeResource(id);
+    return result.error
+        ? res.status(404).json(result)
+        : res.status(200).json(result);
+});
+
 export default router;  // Export du routeur pour l'importer dans server.js
