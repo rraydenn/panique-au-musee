@@ -75,7 +75,6 @@
       </button>
 
       <CatchModal
-        v-if="catchModalVisible"
         :show="catchModalVisible"
         :caught-player="selectedVoleur"
         :user-role="gameService.localPlayer.role"
@@ -215,6 +214,7 @@ export default defineComponent({
 
     const closeCatchModal = () => {
       catchModalVisible.value = false
+      selectedVoleur.value = null;
     }
 
     const checkPlayerProximity = async () => {
@@ -730,6 +730,7 @@ export default defineComponent({
       toggleCalibrationMode,
       cancelCalibration,
       resetCalibration,
+      showCatchModal,
       catchModalVisible,
       closeCatchModal,
       requestWakeLock,

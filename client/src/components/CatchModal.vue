@@ -49,10 +49,10 @@ export default defineComponent({
     // Update title and message based on roles
     watch(() => [props.show, props.userRole, props.caughtPlayer], () => {
       if (props.show && props.caughtPlayer) {        
-        if (props.userRole === 'policier') {
+        if (props.userRole.toLowerCase() === 'policier') {
           title.value = 'Voleur attrapé!'
           message.value = `Vous avez arrêté ${props.caughtPlayer.username}!`
-        } else if (props.userRole === 'voleur') {
+        } else if (props.userRole.toLowerCase() === 'voleur') {
           title.value = 'Vous avez été attrapé!'
           message.value = `Un policier vous a arrêté!`
         }

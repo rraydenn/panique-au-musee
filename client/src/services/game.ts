@@ -99,6 +99,10 @@ class GameService {
         this.localPlayer.id = userId;
         this.localPlayer.role = role;
 
+        this.captured.value = false;
+        this.captureMessage.value = '';
+        this.localPlayer.captured = false;
+
         //this.debug('info', 'init', 'Generating mock data');
         this.generateMockData();
 
