@@ -13,7 +13,16 @@
       <p>{{ positionStore.error }}</p>
       <button @click="retryGeolocation">Réessayer</button>
     </div>
-    <div v-if="gameService.gameOver.value" class="game-over-overlay">
+
+    <div v-if="gameService.captured.value" class="game-over-overlay">
+      <div class="game-over-modal">
+        <h2>Vous avez été capturé !</h2>
+        <p>{{ gameService.captureMessage.value }}</p>
+        <button @click="returnToMenu" class="btn btn-primary">Retour au menu</button>
+      </div>
+    </div>
+
+    <div v-else-if="gameService.gameOver.value" class="game-over-overlay">
       <div class="game-over-modal">
         <h2>Partie Terminée</h2>
         <p>{{ gameService.gameOverMessage.value }}</p>
@@ -135,6 +144,17 @@ export default defineComponent({
     const wakeLock = ref<WakeLockSentinel | null>(null)
     const router = useRouter()
 
+    watch(() => gameService.captured.value, (isCaptured) => {
+      if (isCaptured) {
+        if (ttlInterval) clearInterval(ttlInterval)
+        if (updateInterval) clearInterval(updateInterval)
+        if (playerCheckInterval) clearInterval(playerCheckInterval)
+
+        positionStore.stopTracking()
+        releaseWakeLock()
+      }
+    })
+
     watch(() => gameService.gameOver.value, (isGameOver) => {
       if (isGameOver) {
         if (ttlInterval) clearInterval(ttlInterval)
@@ -205,7 +225,11 @@ export default defineComponent({
         const nearbyVoleurs = await gameService.checkNearbyVoleurs();
 
         if (nearbyVoleurs && nearbyVoleurs.length > 0) {
-          selectedVoleur.value = nearbyVoleurs[0];
+          for (const voleur of nearbyVoleurs) {
+            if (!voleur.captured) {
+              selectedVoleur.value = voleur;
+            }
+          }
           captureConfirmVisible.value = true;
         }
       } catch (error) {
@@ -575,8 +599,11 @@ export default defineComponent({
       document.addEventListener('visibilitychange', handleVisibilityChange)
 
       const userId = localStorage.getItem('login') || 'user-123'
-      console.log('Initializing game for user:', userId, 'with role:', props.userRole)
       await gameService.init(userId, props.userRole)
+
+      if (gameService.localPlayer.role === 'VOLEUR' && gameService.localPlayer.captured) {
+        return
+      }
 
       if (ttlInterval) clearInterval(ttlInterval)
       if (updateInterval) clearInterval(updateInterval)
@@ -596,7 +623,7 @@ export default defineComponent({
         checkVitrineProximity()
       }, 5000)
 
-      if (props.userRole === 'POLICIER') {
+      if (gameService.localPlayer.role === 'POLICIER') {
         // Check for nearby players every 5 seconds
         playerCheckInterval = setInterval(() => {
           checkPlayerProximity()

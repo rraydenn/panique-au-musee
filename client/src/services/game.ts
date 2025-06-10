@@ -43,10 +43,12 @@ class GameService {
         position: { latitude: 45.78200, longitude: 4.86550 },
         image: '',
         score: 0,
-        // captured: false
+        captured: false
     })
     gameOver = ref<boolean>(false);
     gameOverMessage = ref<string>('');
+    captured = ref<boolean>(false);
+    captureMessage = ref<string>('');
 
     private lastFetchTime: number = 0;
     private readonly FETCH_DEBOUNCE_MS = 1000;
@@ -285,9 +287,15 @@ class GameService {
                 this.localPlayer.position = localPlayerData.position;
                 this.localPlayer.image = localPlayerData.image || '';
                 this.localPlayer.score = localPlayerData.showcases || 0;
-                if (localPlayerData.role === 'voleur') {
-                    this.localPlayer.captured = localPlayerData.captured || false;
-                }
+            }
+
+
+            if (localPlayerData.role === 'VOLEUR') {
+                const wasCaptured = this.localPlayer.captured;
+                this.localPlayer.captured = localPlayerData.captured || false;
+                if (this.localPlayer.captured && (!wasCaptured || !this.captured.value)) {
+                    this.handlePlayerCaptured();
+                }                
             }
 
             const newVitrines = resources
@@ -307,6 +315,15 @@ class GameService {
             this.debug('error', 'fetchResources', "Error fetching resources:", error);
             throw error; // Re-throw to allow caller to handle
         }
+    }
+
+    handlePlayerCaptured() {
+        this.captured.value = true;
+        this.captureMessage.value = 'Vous avez été capturé !';
+        this.gameOver.value = true;
+        this.gameOverMessage.value = 'Capture - Partie terminée';
+
+        notificationService.showCaptureNotification('', false);
     }
 
     decreaseTTL() {
