@@ -240,8 +240,11 @@ export default defineComponent({
     const confirmCapture = async () => {
       if (!selectedVoleur.value) return;
 
+      console.log('Attempting capture of:', selectedVoleur.value); // Debug
+
       try {
         await gameService.catchPlayer(selectedVoleur.value.id);
+        console.log('Capture successful, showing modal'); // Debug
 
         notificationService.showCaptureNotification(
           selectedVoleur.value.username,
@@ -254,9 +257,7 @@ export default defineComponent({
           navigator.vibrate(200)
         }
 
-        selectedVoleur.value = null;
         captureConfirmVisible.value = false;
-
         updateMap();
       } catch (error) {
         console.error('Erreur lors de la capture du joueur:', error);

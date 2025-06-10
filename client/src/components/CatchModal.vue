@@ -49,9 +49,12 @@ export default defineComponent({
     // Update title and message based on roles
     watch(() => [props.show, props.userRole, props.caughtPlayer], () => {
       if (props.show && props.caughtPlayer) {        
+        // Use id as fallback if username is not available
+        const playerName = props.caughtPlayer.username || props.caughtPlayer.id || 'Joueur';
+        
         if (props.userRole.toLowerCase() === 'policier') {
           title.value = 'Voleur attrapé!'
-          message.value = `Vous avez arrêté ${props.caughtPlayer.username}!`
+          message.value = `Vous avez arrêté ${playerName}!`
         } else if (props.userRole.toLowerCase() === 'voleur') {
           title.value = 'Vous avez été attrapé!'
           message.value = `Un policier vous a arrêté!`
