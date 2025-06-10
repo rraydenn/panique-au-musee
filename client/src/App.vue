@@ -55,7 +55,11 @@ const logout = async () => {
   } finally {
     logged.value = false
     localStorage.removeItem('token')
+    localStorage.removeItem('login')
+    localStorage.removeItem('userRole')
     loginError.value = ''
+    login.value = ''
+    userRole.value = ''
   }
 }
 </script>
