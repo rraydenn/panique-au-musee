@@ -250,6 +250,10 @@ export default defineComponent({
 
         showCatchModal(selectedVoleur.value);
 
+        if (navigator.vibrate) {
+          navigator.vibrate(200)
+        }
+
         selectedVoleur.value = null;
         captureConfirmVisible.value = false;
 

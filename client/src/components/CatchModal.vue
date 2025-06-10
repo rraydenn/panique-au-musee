@@ -48,12 +48,7 @@ export default defineComponent({
 
     // Update title and message based on roles
     watch(() => [props.show, props.userRole, props.caughtPlayer], () => {
-      if (props.show && props.caughtPlayer) {
-        // Make the phone vibrate when modal appears
-        if (navigator.vibrate) {
-          navigator.vibrate([200, 100, 200, 100, 200])
-        }
-        
+      if (props.show && props.caughtPlayer) {        
         if (props.userRole === 'policier') {
           title.value = 'Voleur attrapé!'
           message.value = `Vous avez arrêté ${props.caughtPlayer.username}!`
