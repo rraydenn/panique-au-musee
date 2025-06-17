@@ -1,58 +1,78 @@
-# M1IF13-2025-base
+# 🎮 MIF13 Geolocation Game - Panique au Musée
 
-Ce projet contient les sources à utiliser pour les TP de M1IF13 pour l'année 2024-2025.
+Application de jeu géolocalisé multi-plateforme développée dans le cadre du cours M1IF13. Le jeu oppose **policiers** et **voleurs** dans un environnement urbain avec géolocalisation en temps réel.
 
-Il est demandé de l'utiliser comme base pour votre repo, en conservant notamment les noms des répertoires contenant les différents projets fournis.
+## 🎯 Concept du jeu
 
-Merci de modifier ce readme en indiquant :
+- **Voleurs** : Doivent traiter des vitrines dans une zone délimitée (ZRR) sans se faire capturer
+- **Policiers** : Doivent capturer tous les voleurs pour gagner la partie, et peuvent fermer les vitrines avant que les voleurs ne les capturent
+- **Zone de jeu** : Délimitée par une Zone à Risque Restreint (ZRR) configurable
+- **Vitrines** : Apparaissent temporairement avec un système de TTL (Time To Live)
 
-- votre numéro de binôme
-- vos noms
-- pour chaque TP, les informations à connaître pour la correction, par exemple :
-  - s'il a été fait (ou pas)
-  - jusqu'où vous avez été
-  - vos choix de conception s'ils ne sont pas évidents
+## 🏗️ Architecture
 
-Numéro de binôme : B16  
-DOMINGUES Kévin  
-POUPON Ugo  
+### Backend
+- **users** - API Spring Boot pour l'authentification JWT et gestion des utilisateurs
+- **api** - Serveur Express.js pour la logique de jeu et gestion des ressources
 
-## TP1
+### Frontend
+- **client** - Application Vue.js 3 PWA pour les joueurs avec carte interactive Leaflet
+- **admin** - Interface d'administration TypeScript/Webpack pour la supervision
 
-Fini (màj: 19/03)
+## 🛠️ Technologies
 
-## TP2
+- **Backend** : Spring Boot, Express.js, JWT, CORS
+- **Frontend** : Vue.js 3, TypeScript, Leaflet, PWA
+- **Base de données** : In-memory (HashMap Java, Arrays JavaScript)
+- **Tests** : Jasmine, Vitest
+- **Build** : Maven, Webpack, Vite
+- **CI/CD** : GitLab CI avec déploiement automatisé
 
-Fini (màj: 19/03)
+## 🚀 Fonctionnalités
 
-### Documentation de l'API
+### Pour les joueurs
+- 📍 Géolocalisation en temps réel
+- 🗺️ Carte interactive avec positions des autres joueurs/objets
+- 🔐 Authentification sécurisée JWT
+- 📱 Application mobile PWA
+- ⚡ Mises à jour temps réel
 
-- [Fichier OpenAPI (YAML)](users/openapi/users-api.yaml)  
-- [Collection Postman](users/postman/M1IF13-2025.postman_collection.json)  
-- [Documentation Swagger UI - Pas encore implémenté](http://192.168.75.XXX:8080/swagger-ui)  
+### Pour les administrateurs
+- 🎛️ Interface de contrôle complète
+- 🗺️ Configuration de la ZRR sur carte
+- 👥 Gestion des rôles des joueurs
+- 📊 Suivi des statistiques de partie
+- ⏱️ Configuration du TTL des vitrines
 
-## TP3
+## 📋 APIs disponibles
 
-Fini (màj: 16/04)
+- **Authentification** : Login/logout, gestion des tokens
+- **Jeu** : Positions, capture, traitement vitrines, statut partie
+- **Administration** : Configuration ZRR, gestion joueurs, statistiques
+- **Géolocalisation** : Détection de proximité, validation positions
 
-## TP4
+## 🔧 Installation rapide
 
-Fini (màj 23/04)
-revoir jasmine (modification en encore possible)
-- Possibilité de changer les rôles et aussi de mettre fin à la partie
+```bash
+# Backend utilisateurs (Spring Boot)
+cd users && mvn spring-boot:run
 
-## TP5
+# API jeu (Express)
+cd api && npm install && npm start
 
-Fini (màj 22/05)
+# Client joueurs (Vue.js)
+cd client && npm install && npm run dev
 
-## TP6
+# Interface admin
+cd admin && npm install && npm run serve
+```
 
-Fini (màj 26/05)
+## 📚 Documentation
 
-## TP7
+- Collection Postman pour tester les APIs
+- Spécification OpenAPI dans openapi
+- Documentation détaillée par composant dans chaque README
 
-Fini (màj 04/06)
+---
 
-## TP8
-
-en cours (màj 08/06)
+*Projet académique M1IF13 - Université Claude Bernard Lyon 1*
