@@ -37,7 +37,7 @@ app.use("/static", express.static(path.join(__dirname, "public")));
 // Middleware d'authentification JWT
 function verifyJWTMiddleware(req, res, next) {
 	const authHeader = req.headers["authorization"];
-	const origin = req.headers["origin"] || "http://localhost" || "http://localhost:8080";
+	const origin = req.headers["origin"] || "http://localhost";
 
 	if (!authHeader) {
 		return res.status(401).json({ message: "Unauthorized: No token provided" });
