@@ -1,4 +1,5 @@
 import { apiSpringBootPath } from './config';
+import '../css/style.css'
 
 declare global {
     interface Window {

@@ -89,11 +89,14 @@ input[type=submit].iconic {
 	margin: 0.22em 0;
 }
 
-h1.pwd{
-	color: #dfcba2;
-    font-size: 1.5em;
+h1.pwd {
+    color: #dfcba2;
+    font-size: 1.2em;
+    font-family: _h2_;
     text-shadow: none;
-    font-weight: bold;
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
 
 section {
@@ -118,6 +121,141 @@ label:not(.first) {
 	margin-left: 1.5em;
 }
 
+.door {
+    display: flex !important;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.door label.first {
+    color: silver;
+    font-family: _normal_;
+    margin: 0;
+}
+
+.door input[type="password"] {
+    flex: 1;
+    padding: 0.8rem;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.door input[type="submit"].iconic {
+    background-color: #dfcba2 !important;
+    color: darkslategrey !important;
+    border: 2px solid darkslategrey !important;
+    border-radius: 8px !important;
+    padding: 0.8rem 1.2rem;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.door input[type="submit"].iconic:hover {
+    background-color: #c9b388 !important;
+    transform: scale(1.05);
+}
+
 .door>input{
 	display: inline-block !important;
+}
+
+.login-container {
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.login-form {
+    background-color: #3C473F;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1.5em;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h1 {
+    margin-bottom: 0.5rem;
+}
+
+.login-header .subtitle {
+    color: #dfcba2;
+    font-size: 1.2em;
+    font-family: _h2_;
+    margin-bottom: 1rem;
+}
+
+.password-field {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.password-field label {
+    color: silver;
+    font-family: _normal_;
+    min-width: 120px;
+}
+
+.password-field input[type="password"] {
+    flex: 1;
+    padding: 0.8rem;
+    font-size: 1rem;
+    background-color: #dfcba2 !important;
+    color: darkslategrey !important;
+    border: 1px solid darkslategrey !important;
+    border-radius: 5px !important;
+}
+
+.submit-container {
+    text-align: right;
+}
+
+.submit-btn {
+    background-color: #dfcba2 !important;
+    color: darkslategrey !important;
+    border: 2px solid darkslategrey !important;
+    border-radius: 8px !important;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    background-color: #c9b388 !important;
+    transform: scale(1.05);
+}
+
+.warning-text {
+    background-color: rgba(223, 203, 162, 0.1);
+    border: 1px solid #dfcba2;
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .door {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+    }
+    
+    .door label.first {
+        text-align: left;
+    }
+    
+    h1 {
+        font-size: 3em;
+    }
 }
