@@ -49,12 +49,12 @@ router.post("/treat-vitrine", (req, res) => {
 // 4. Route pour capturer un voleur
 router.post('/capture-voleur', (req, res) => {
 	const userId = req.user.sub;
-    const { voleurId } = req.body;
-    if (!voleurId) {
-        return res.status(400).json({ error: "L'ID du voleur est requis" });
-    }
-    const result = DAO.captureVoleur(userId, voleurId);
-    return result.error ? res.status(400).json(result) : res.json(result);
+	const { voleurId } = req.body;
+	if (!voleurId) {
+		return res.status(400).json({ error: "L'ID du voleur est requis" });
+	}
+	const result = DAO.captureVoleur(userId, voleurId);
+	return result.error ? res.status(400).json(result) : res.json(result);
 });
 
 // 5. Récupérer les limites de la ZRR
@@ -80,25 +80,25 @@ router.put("/resource/:id/image", (req, res) => {
 
 // 7. Récupérer le statut de la partie (si tous les voleurs sont capturés)
 router.get("/game-status", (req, res) => {
-    const isGameOver = DAO.isGameOver();
-    return res.json({ 
-        gameOver: isGameOver,
-        message: isGameOver ? "Tous les voleurs ont été capturés ! Partie terminée." : "La partie est toujours en cours."
-    });
+	const isGameOver = DAO.isGameOver();
+	return res.json({ 
+		gameOver: isGameOver,
+		message: isGameOver ? "Tous les voleurs ont été capturés ! Partie terminée." : "La partie est toujours en cours."
+	});
 });
 
 // 8. Supprimer une ressource par son ID
 router.delete("/resource/:id", (req, res) => {
-    const { id } = req.params;
+	const { id } = req.params;
     
-    if (!id) {
-        return res.status(400).json({ error: "L'identifiant de la ressource est requis" });
-    }
+	if (!id) {
+		return res.status(400).json({ error: "L'identifiant de la ressource est requis" });
+	}
     
-    const result = DAO.removeResource(id);
-    return result.error
-        ? res.status(404).json(result)
-        : res.status(200).json(result);
+	const result = DAO.removeResource(id);
+	return result.error
+		? res.status(404).json(result)
+		: res.status(200).json(result);
 });
 
 export default router;  // Export du routeur pour l'importer dans server.js

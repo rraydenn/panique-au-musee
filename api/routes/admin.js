@@ -112,14 +112,14 @@ router.put("/resource/:id/role", (req, res) => {
 
 // 7. Mettre fin à la partie
 router.post("/end-game", (req, res) => {
-    const result = DAO.endGame();
-    return res.status(200).json(result);
+	const result = DAO.endGame();
+	return res.status(200).json(result);
 });
 
 // 8. Réinitialiser le jeu pour une nouvelle partie
 router.post("/reset-game", (req, res) => {
-    const result = DAO.resetGame();
-    return res.status(200).json(result);
+	const result = DAO.resetGame();
+	return res.status(200).json(result);
 });
 
 export default router;
