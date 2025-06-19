@@ -13,7 +13,7 @@ const app = express();
 const PORT = 3376;
 
 // Définition des origines autorisées pour CORS
-const allowedOrigins = ["http://localhost", "http://localhost:8080", "http://localhost:8081", "https://192.168.75.94", "http://192.168.75.94", "http://127.0.0.1"];
+const allowedOrigins = ["http://localhost", "http://localhost:8080", "http://localhost:8081", "http://localhost:3376", "http://localhost:5173", "https://192.168.75.94", "http://192.168.75.94", "http://127.0.0.1"];
 
 app.use(cors({
 	origin: function (origin, callback) {

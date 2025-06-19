@@ -50,7 +50,9 @@ export default defineConfig({
           },
           {
             // Cache des API calls de jeu
-            urlPattern: /^https:\/\/192\.168\.75\.94.*\/api\/game\//,
+            urlPattern: process.env.NODE_ENV === 'development' 
+              ? /^http:\/\/localhost:3376\/api\/game\//
+              : /^https:\/\/192\.168\.75\.94.*\/api\/game\//,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'game-api',
@@ -122,48 +124,25 @@ export default defineConfig({
     },
   },
   server: {
+    port: 5173,
     proxy: {
       '/users': {
-        target: 'https://192.168.75.94:8443', // Adresse de Spring Boot
+        target: 'http://localhost:8080',
         changeOrigin: true,
         headers: {
-          Origin: 'https://192.168.75.94'
+          Origin: 'http://localhost:5173'
         },
         secure: false,
       },
       '/game': {
-        //TODO : ajouter le serveur pour request les données de jeu (ZRR par exemple)
-        target: 'https://192.168.75.94', // Adresse de Express
+                target: 'http://localhost:3376',
         changeOrigin: true,
         headers: {
-          Origin: 'https://192.168.75.94'
+          Origin: 'http://localhost:5173'
         },
         secure: false,
         rewrite: (path) => path.replace(/^\/game/, '/api/game')
       }
     }
   }
-  // server: {
-  //   proxy: {
-  //     '/api': {
-  //       target: 'http://localhost:8080', // Adresse de Spring Boot
-  //       changeOrigin: true,
-  //       headers: {
-  //         Origin: 'http://localhost'
-  //       },
-  //       secure: false,
-  //       rewrite: (path) => path.replace(/^\/api/, '')
-  //     },
-  //     '/game': {
-  //       //TODO : ajouter le serveur pour request les données de jeu (ZRR par exemple)
-  //       target: 'http://localhost:3376', // Adresse de Express
-  //       changeOrigin: true,
-  //       headers: {
-  //         Origin: 'http://localhost'
-  //       },
-  //       secure: false,
-  //       rewrite: (path) => path.replace(/^\/game/, '/game')
-  //     }
-  //   }
-  // }
 })

@@ -5,6 +5,11 @@ declare global {
     interface Window {
       authenticateAdmin: () => Promise<boolean>;
     }
+    namespace NodeJS {
+        interface ProcessEnv {
+            NODE_ENV: 'development' | 'production';
+        }
+    }
   }
 
   window.authenticateAdmin = async function (): Promise<boolean>{

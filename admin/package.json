@@ -3,9 +3,10 @@
   "description": "My webpack project",
   "name": "webpack-project",
   "scripts": {
-    "build": "webpack --mode=production --node-env=production",
-    "build:dev": "webpack --mode=development",
-    "serve": "webpack serve",
+    "build": "NODE_ENV=production webpack --mode=production",
+    "build:dev": "NODE_ENV=development webpack --mode=development",
+    "serve": "NODE_ENV=development webpack serve --port 8081",
+    "dev": "NODE_ENV=development webpack serve --port 8081",
     "watch": "webpack --watch",
     "test": "jasmine"
   },
