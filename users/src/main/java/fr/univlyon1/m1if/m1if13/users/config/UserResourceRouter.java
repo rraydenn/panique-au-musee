@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -117,6 +118,8 @@ public class UserResourceRouter {
         )
     )
 })
+    @CrossOrigin(origins = {"http://localhost", "http://127.0.0.1", "http://localhost:8080", "http://localhost:8081", "http://192.168.75.94", "https://192.168.75.94", "http://192.168.75.94:8080", "https://192.168.75.94:8443"},
+            allowCredentials = "true")
     public RouterFunction<ServerResponse> userRoutes(UserResourceHandler userHandler) {
         return RouterFunctions
                 .route(GET("/users").and(accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)),

@@ -31,16 +31,23 @@ public class AuthenticationFilter extends HttpFilter {
         // Permet de retrouver la fin de l'URL (après l'URL du contexte) -> indépendant de l'URL de déploiement
         String url = request.getRequestURI().replaceFirst(request.getContextPath(), "");
 
-        // Gestion explicite des requêtes OPTIONS pour CORS
-        if (request.getMethod().equals("OPTIONS")) {
-            // Ajouter les en-têtes CORS nécessaires pour les requêtes OPTIONS
-            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        // Add CORS headers for all requests
+        String origin = request.getHeader("Origin");
+        if (origin != null && (origin.startsWith("http://localhost") || 
+                            origin.startsWith("http://127.0.0.1") || 
+                            origin.startsWith("http://192.168.75.94") ||
+                            origin.startsWith("https://192.168.75.94"))) {
+            response.setHeader("Access-Control-Allow-Origin", origin);
             response.setHeader("Access-Control-Allow-Credentials", "true");
             response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
-            response.setHeader("Access-Control-Max-Age", "3600");
-            response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, Authorization, Origin");
+            response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin");
+            response.setHeader("Access-Control-Expose-Headers", "Authorization, Location");
+        }
+
+        // Gestion explicite des requêtes OPTIONS pour CORS
+        if (request.getMethod().equals("OPTIONS")) {
             response.setStatus(HttpServletResponse.SC_OK);
-            return; // Important: on ne continue pas la chaîne de filtres pour les requêtes OPTIONS
+            return;
         }
 
         // Laisse passer les URLs ne nécessitant pas d'authentification et les requêtes par des utilisateurs authentifiés

@@ -1,6 +1,6 @@
 import { updateMap } from './map';
 import { drawZrr, fetchAndDisplayZrr, resetZrrState} from './mapState';
-import { apiPath } from './config';
+import { apiPath, apiSpringBootPath } from './config';
 import { endGame } from './endGame'; // Importer la fonction endGame
 
 
@@ -64,6 +64,11 @@ function initListeners(mymap: any): void {
         if (confirm("Êtes-vous sûr de vouloir réinitialiser la partie ? Cette action est irréversible.")) {
             resetGame();
         }
+    });
+
+    // Ajouter un utilisateur
+    document.getElementById('addUserButton').addEventListener('click', function() {
+        addUser();
     });
 }
 
@@ -314,6 +319,86 @@ function resetGame(): void {
             window.location.reload();
         }
         return response.json();
+    })
+}
+
+function addUser(): void {
+    const loginInput = document.getElementById('userLogin') as HTMLInputElement;
+    const passwordInput = document.getElementById('userPassword') as HTMLInputElement;
+    const speciesSelect = document.getElementById('userSpecies') as HTMLSelectElement;
+    const imageInput = document.getElementById('userImage') as HTMLInputElement;
+
+    if (!loginInput || !passwordInput || !speciesSelect) {
+        alert('Erreur: formulaire incomplet');
+        return;
+    }
+
+    const login = loginInput.value.trim();
+    const password = passwordInput.value.trim();
+    const species = speciesSelect.value;
+    const image = imageInput?.value.trim() || '12.png'; //Image par défaut
+
+    if (!login || !password) {
+        alert('Login et mot de passe sont requis');
+        return;
+    }
+
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+        alert("Vous n'êtes pas authentifié. Veuillez vous connecter.");
+        return;
+    }
+
+    const userData = {
+        login: login,
+        password: password,
+        species: species
+    };
+
+    fetch(`${apiSpringBootPath}/users`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Origin': window.location.origin,
+        },
+        body: JSON.stringify(userData)
+    }).then(response => {
+        if (response.ok || response.status === 201) {
+            return addUserToGame(login, species, image);
+        } else {
+            throw new Error('Erreur lors de l\'ajout de l\'utilisateur');
+        }
+    }).then(() => {
+        alert('Utilisateur créé avec succès dans les 2 APIs');
+        loginInput.value = '';
+        passwordInput.value = '';
+        imageInput.value = '';
+    })
+}
+
+function addUserToGame(login: string, species: string, image: string) {
+    const token = localStorage.getItem('adminToken')
+
+    const gameUserData = {
+        username: login,
+        role: species
+    };
+
+    return fetch(`${apiPath}/admin/player-role`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(gameUserData)
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(`Erreur lors de l'ajout au jeu: ${response.status}`);
+        }
+
+        return response.json();
+    }).then(() => {
+        console.log('Utilisateur ajouté avec succès');
     })
 }
 
