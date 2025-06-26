@@ -132,6 +132,7 @@ export default defineConfig({
         headers: {
           Origin: 'http://localhost:5173'
         },
+        rewrite: (path) => path.replace(/^\/users/, ''),
         secure: false,
       },
       '/game': {
