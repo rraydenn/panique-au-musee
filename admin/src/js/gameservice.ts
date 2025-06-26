@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { apiPath, refreshInterval } from './config';
+import { apiPath, apiSpringBootPath, refreshInterval } from './config';
 import { endGame } from './endGame';
 
 // Définition des types pour les ressources
@@ -27,12 +27,12 @@ class GameService {
         this.map = map;
 
         // Gestion du clic sur la carte pour ajouter une vitrine
-        this.map.on('click', (e: L.LeafletMouseEvent) => {
-            map.on('click', (e) => {
-                const { lat, lng } = e.latlng;
-                (document.getElementById('vitrineLat') as HTMLInputElement).value = lat.toFixed(5);
-                (document.getElementById('vitrineLng') as HTMLInputElement).value = lng.toFixed(5);
-            });
+        this.map.on('contextmenu', (e: L.LeafletMouseEvent) => {
+            const { lat, lng } = e.latlng;
+            (document.getElementById('vitrineLat') as HTMLInputElement).value = lat.toFixed(5);
+            (document.getElementById('vitrineLng') as HTMLInputElement).value = lng.toFixed(5);
+
+            e.originalEvent.preventDefault();
         });
     }
 
@@ -99,8 +99,8 @@ class GameService {
             return response.json();
         })
         .then(data => {
-            if (!data || !Array.isArray(data) || data.length === 0) {
-                console.error('Données inattendu ou vide: ', data);
+            if (!data || !Array.isArray(data)) {
+                console.error('Données inattendues: ', data);
                 return;
             } else {
                 this.updateResources(data);
@@ -127,7 +127,8 @@ class GameService {
             if (this.resourceMarkers.has(resource.id)) {
                 const marker = this.resourceMarkers.get(resource.id)!;
                 marker.setLatLng([resource.position.latitude, resource.position.longitude]);
-                if (resource.image) {
+                if (resource.image && typeof resource.image === 'string' && resource.image.trim() !== '') {
+                    console.log(`Mise à jour de l'icône pour la ressource ${resource.id}`);
                     // Met à jour l'icône seulement si image existe
                     const resourceIcon = L.icon({
                         iconUrl: resource.image,
@@ -142,7 +143,8 @@ class GameService {
             // Sinon, créer un nouveau marqueur
             else {
                 let marker: L.Marker;
-                if (resource.image) {
+                if (resource.image && typeof resource.image === 'string' && resource.image.trim() !== '') {
+                    console.log(`Création d'un nouveau marqueur pour la ressource ${resource.id}`);
                     const resourceIcon = L.icon({
                         iconUrl: resource.image,
                         iconSize: [30, 30],
@@ -193,9 +195,14 @@ class GameService {
             const isVoleurCapture = res.role === 'VOLEUR' && res.captured === true;
             
             // Créer le contenu HTML de base pour tous les joueurs
-            let playerContent = `<b> - ${res.id}</b>
-                        <img src="${res.image}" alt="${res.id}" style="width: 30px; height: 30px; border-radius: 50%;" />
-                        <span style="margin-left: 10px;">${res.role}</span>`;
+            let playerContent = `<b> - ${res.id}</b>`;
+    
+            // Ajouter l'image du joueur s'il en a une
+            if (res.image && typeof res.image === 'string' && res.image.trim() !== '') {
+                playerContent += `<img src="${res.image}" alt="${res.id}" style="width: 30px; height: 30px; border-radius: 50%; margin-left: 10px;" />`;
+            }
+            
+            playerContent += `<span style="margin-left: 10px;">${res.role}</span>`;
                         
             // Ajouter l'indicateur "CAPTURÉ" pour les voleurs capturés
             if (isVoleurCapture) {
@@ -217,6 +224,23 @@ class GameService {
                     this.changePlayerRole(res.id, newRole);
                 };
                 li.appendChild(changeRoleBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerText = '❌'
+                deleteBtn.style.marginLeft = '5px';
+                deleteBtn.style.padding = '3px 8px';
+                deleteBtn.style.fontSize = '12px';
+                deleteBtn.style.backgroundColor = '#dc3545';
+                deleteBtn.style.color = 'white';
+                deleteBtn.style.border = 'none';
+                deleteBtn.style.borderRadius = '3px';
+                deleteBtn.style.cursor = 'pointer';
+                deleteBtn.onclick = () => {
+                    if (confirm(`Êtes-vous sûr de vouloir supprimer le joueur ${res.id} ?`)) {
+                        this.deletePlayer(res.id);
+                    }
+                };
+                li.appendChild(deleteBtn);
             }
         }
         else {
@@ -256,6 +280,53 @@ class GameService {
         })
         .catch(error => {
             console.error('Erreur lors du changement de rôle:', error);
+        });
+    }
+
+    public deletePlayer(playerId: string): void {
+        const token = localStorage.getItem('adminToken');
+
+        if (!token) {
+            console.error("Pas de token d'authentification disponible");
+            return;
+        }
+
+        //console.log(`Suppression du joueur ${playerId}`);
+
+        fetch(`${apiPath}/admin/resource/${playerId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP lors de la suppression du jeu: ${response.status}`);
+            }
+            //console.log(`Joueur ${playerId} supprimé du jeu`);
+
+            return fetch(`${apiSpringBootPath}/users/${playerId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Origin': window.location.origin,
+                    'Content-Type': 'application/json',
+                }
+            });
+        })
+        .then(reponse => {
+            if (!reponse.ok) {
+                throw new Error(`Erreur HTTP lors de la suppression de l'utilisateur: ${reponse.status}`);
+            }
+            //console.log(`Utilisateur ${playerId} supprimé`);
+            alert(`Joueur ${playerId} supprimé avec succès !`);
+
+            // Rafraîchir les ressources après la suppression
+            this.fetchResources();
+        })
+        .catch(error => {
+            console.error('Erreur lors de la suppression du joueur:', error);
+            alert(`Erreur lors de la suppression du joueur ${playerId}: ${error.message}`);
         });
     }
     

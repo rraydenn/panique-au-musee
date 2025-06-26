@@ -122,4 +122,17 @@ router.post("/reset-game", (req, res) => {
 	return res.status(200).json(result);
 });
 
+router.delete("/resource/:id", (req, res) => {
+	const { id } = req.params;
+
+	if (!id) {
+		return res.status(400).json({ error: "L'identifiant du joueur est requis" });
+	}
+
+	const result = DAO.deleteResource(id);
+	return result.error
+		? res.status(404).json(result)
+		: res.status(200).json(result);
+});
+
 export default router;

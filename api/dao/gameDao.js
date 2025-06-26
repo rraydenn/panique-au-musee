@@ -319,6 +319,16 @@ class DAO {
 			playersCount: this.resources.length
 		};
 	}
+
+	deleteResource(id) {
+		const resourceIndex = this.resources.findIndex(r => r.id === id);
+		if (resourceIndex === -1) {
+			return { error: 'Ressource introuvable' };
+		}
+		
+		const removedResource = this.resources.splice(resourceIndex, 1)[0];
+		return { success: true, message: `Ressource ${id} supprimée avec succès`, removedResource };
+	}
 		
 }
 
