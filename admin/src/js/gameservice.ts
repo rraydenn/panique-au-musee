@@ -128,7 +128,6 @@ class GameService {
                 const marker = this.resourceMarkers.get(resource.id)!;
                 marker.setLatLng([resource.position.latitude, resource.position.longitude]);
                 if (resource.image && typeof resource.image === 'string' && resource.image.trim() !== '') {
-                    console.log(`Mise à jour de l'icône pour la ressource ${resource.id}`);
                     // Met à jour l'icône seulement si image existe
                     const resourceIcon = L.icon({
                         iconUrl: resource.image,
@@ -144,7 +143,6 @@ class GameService {
             else {
                 let marker: L.Marker;
                 if (resource.image && typeof resource.image === 'string' && resource.image.trim() !== '') {
-                    console.log(`Création d'un nouveau marqueur pour la ressource ${resource.id}`);
                     const resourceIcon = L.icon({
                         iconUrl: resource.image,
                         iconSize: [30, 30],

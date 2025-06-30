@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import adminRouter from "./routes/admin.js";
 import gameRouter from "./routes/game.js";
 import cors from "cors";
+import DevInitializer from "./config/devInitializer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,4 +85,6 @@ app.use((err, req, res) => {
 
 app.listen(PORT, () => {
 	console.log(`Serveur démarré sur http://localhost:${PORT}`);
+
+	DevInitializer.initializeDevUsers();
 });

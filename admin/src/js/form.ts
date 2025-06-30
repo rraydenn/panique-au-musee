@@ -336,7 +336,7 @@ function addUser(): void {
     const login = loginInput.value.trim();
     const password = passwordInput.value.trim();
     const species = speciesSelect.value;
-    const image = imageInput?.value.trim() || '12.png'; //Image par défaut
+    const image = imageInput?.value.trim() || ''; //Image par défaut
 
     if (!login || !password) {
         alert('Login et mot de passe sont requis');
@@ -381,7 +381,8 @@ function addUserToGame(login: string, species: string, image: string) {
 
     const gameUserData = {
         username: login,
-        role: species
+        role: species,
+        image: image
     };
 
     return fetch(`${apiPath}/admin/player-role`, {
