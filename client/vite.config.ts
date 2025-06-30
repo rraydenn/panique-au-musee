@@ -136,13 +136,12 @@ export default defineConfig({
         secure: false,
       },
       '/game': {
-                target: 'http://localhost:3376',
+        target: 'http://localhost:3376',
         changeOrigin: true,
         headers: {
           Origin: 'http://localhost:5173'
         },
         secure: false,
-        rewrite: (path) => path.replace(/^\/game/, '/api/game')
       }
     }
   }

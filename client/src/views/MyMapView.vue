@@ -1,8 +1,11 @@
 <template>
-  <div class="map-view">
-    <h1>Map View</h1>
-    <MyMap :userRole="userRole" />
-  </div>
+  <section class="map-section">
+    <h2>🗺️ Carte de Surveillance</h2>
+    <div class="content">
+      <p>Surveillance en temps réel des positions et des ressources du musée.</p>
+      <MyMap :userRole="userRole" />
+    </div>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -13,8 +16,8 @@ defineProps<{
 }>()
 </script>
 
-<style>
-.map-view {
-  padding: 1rem;
+<style scoped>
+.map-section {
+  margin-bottom: 2rem;
 }
 </style>
